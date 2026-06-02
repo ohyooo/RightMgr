@@ -7,6 +7,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
 using RightMgr.Models;
 using RightMgr.Services;
 using Registry = Microsoft.Win32.Registry;
@@ -27,7 +28,7 @@ public partial class MainWindow : Window
     private List<ContextMenuItemInfo> _items = new();
     private List<ContextMenuItemInfo> _filtered = new();
     private ContextMenuItemInfo? _selected;
-    private readonly AppThemeMode _themeMode;
+    private AppThemeMode _themeMode;
     private AppThemePalette _palette = AppThemePalette.Light;
     private bool _loading = true;
     private bool _refreshingCategories;
@@ -36,6 +37,7 @@ public partial class MainWindow : Window
     {
         _themeMode = themeMode;
         InitializeComponent();
+        AllowDrop = true;
         ApplyTheme();
         LoadData();
         Loaded += (_, _) => ApplyTheme();
@@ -73,6 +75,7 @@ public partial class MainWindow : Window
         _palette = dark ? AppThemePalette.Dark : AppThemePalette.Light;
         ApplyPalette(_palette);
         Background = BrushFromHex(_palette.Window);
+        UpdateThemeButtonIcon();
         ApplyWindowChromeTheme(dark);
     }
 
@@ -144,13 +147,25 @@ public partial class MainWindow : Window
 
     private void DragArea_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
+        if (e.LeftButton != MouseButtonState.Pressed)
+            return;
+
         if (e.ClickCount == 2)
         {
             ToggleWindowState();
+            e.Handled = true;
             return;
         }
 
-        DragMove();
+        try
+        {
+            DragMove();
+            e.Handled = true;
+        }
+        catch (InvalidOperationException)
+        {
+            // Child controls can bubble mouse events after the button state changes.
+        }
     }
 
     private void MaximizeButton_Click(object sender, RoutedEventArgs e)
@@ -175,6 +190,38 @@ public partial class MainWindow : Window
             return;
 
         MaximizeButton.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+    }
+
+    private void ThemeButton_Click(object sender, RoutedEventArgs e)
+    {
+        _themeMode = _themeMode switch
+        {
+            AppThemeMode.System => AppThemeMode.Light,
+            AppThemeMode.Light => AppThemeMode.Dark,
+            _ => AppThemeMode.System
+        };
+
+        AppConfigService.SaveThemeMode(_themeMode);
+        ApplyTheme();
+    }
+
+    private void UpdateThemeButtonIcon()
+    {
+        if (ThemeButtonIcon == null || ThemeButton == null)
+            return;
+
+        ThemeButtonIcon.Text = _themeMode switch
+        {
+            AppThemeMode.Light => "\uE706",
+            AppThemeMode.Dark => "\uE708",
+            _ => "\uE771"
+        };
+        ThemeButton.ToolTip = _themeMode switch
+        {
+            AppThemeMode.Light => "白色主题",
+            AppThemeMode.Dark => "黑色主题",
+            _ => "跟随系统"
+        };
     }
 
     private void LoadData()
@@ -393,6 +440,42 @@ public partial class MainWindow : Window
     {
         ApplyFilters();
         SelectFirstItem();
+    }
+
+    private void Window_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = GetDroppedFileExtension(e) == null ? DragDropEffects.None : DragDropEffects.Copy;
+        e.Handled = true;
+    }
+
+    private void Window_Drop(object sender, DragEventArgs e)
+    {
+        var extension = GetDroppedFileExtension(e);
+        if (extension == null)
+            return;
+
+        SearchBox.Text = extension;
+        SearchNameBox.IsChecked = false;
+        SearchCategoryBox.IsChecked = true;
+        SearchRegistryBox.IsChecked = false;
+        SearchValueBox.IsChecked = false;
+        SearchComBox.IsChecked = false;
+        UseRegexBox.IsChecked = false;
+        ApplyFilters();
+        SelectFirstItem();
+        StatusText.Text = $"已按后缀名 {extension} 过滤。";
+        e.Handled = true;
+    }
+
+    private static string? GetDroppedFileExtension(DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+            return null;
+
+        var files = e.Data.GetData(DataFormats.FileDrop) as string[];
+        var file = files?.FirstOrDefault(File.Exists);
+        var extension = file == null ? null : Path.GetExtension(file);
+        return string.IsNullOrWhiteSpace(extension) ? null : extension;
     }
 
     private void TypeFilter_Changed(object sender, RoutedEventArgs e)

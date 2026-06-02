@@ -221,7 +221,7 @@ public static class ContextMenuRegistryScanner
             IconResource = iconResource,
             IconFilePath = iconFile,
             InProcServer32 = inproc,
-            Description = BuildDescription(location, clsidName, resolvedDisplayName, inproc)
+            Description = BuildDescription(location, clsidName, resolvedDisplayName)
         });
     }
 
@@ -263,12 +263,11 @@ public static class ContextMenuRegistryScanner
             .Replace(@"\Shell", "", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string BuildDescription(ScanLocation location, string? clsidName, string rawName, string? inproc)
+    private static string BuildDescription(ScanLocation location, string? clsidName, string rawName)
     {
         var source = location.Kind == ContextMenuKind.ShellVerb ? "传统命令" : "COM 扩展";
         var name = FirstNonEmpty(clsidName, rawName) ?? "未命名";
-        var dll = string.IsNullOrWhiteSpace(inproc) ? "" : $" · {inproc}";
-        return $"{source} · 作用于 {location.AppliesTo} · {name}{dll}";
+        return $"{source} · 作用于 {location.AppliesTo} · {name}";
     }
 
     private static string GetDedupeKey(ContextMenuItemInfo item)

@@ -18,10 +18,10 @@ public static class Program
 
         var app = new App();
         app.InitializeComponent();
-        app.Run(new MainWindow(ParseThemeMode(args)));
+        app.Run(new MainWindow(ParseThemeMode(args) ?? AppConfigService.LoadThemeMode() ?? AppThemeMode.System));
     }
 
-    private static AppThemeMode ParseThemeMode(string[] args)
+    private static AppThemeMode? ParseThemeMode(string[] args)
     {
         for (var i = 0; i < args.Length; i++)
         {
@@ -42,16 +42,10 @@ public static class Program
             if (value == null)
                 continue;
 
-            return value.ToLowerInvariant() switch
-            {
-                "light" or "white" => AppThemeMode.Light,
-                "dark" => AppThemeMode.Dark,
-                "system" or "auto" => AppThemeMode.System,
-                _ => AppThemeMode.System
-            };
+            return AppConfigService.ParseThemeMode(value);
         }
 
-        return AppThemeMode.System;
+        return null;
     }
 
     private static void PrintAll()

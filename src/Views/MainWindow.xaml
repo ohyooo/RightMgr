@@ -10,7 +10,9 @@
         FontFamily="Segoe UI, Microsoft YaHei UI"
         TextOptions.TextFormattingMode="Display"
         WindowStyle="None"
-        ResizeMode="CanResize">
+        ResizeMode="CanResize"
+        DragOver="Window_DragOver"
+        Drop="Window_Drop">
     <WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" />
     </WindowChrome.WindowChrome>
@@ -40,6 +42,7 @@
         <sys:Double x:Key="FontSizeTitle">20</sys:Double>
         <sys:Double x:Key="FontSizeHero">28</sys:Double>
         <sys:Double x:Key="ControlHeight">32</sys:Double>
+        <sys:Double x:Key="DetailTwoLineHeight">46</sys:Double>
         <Thickness x:Key="ControlPadding">8,5</Thickness>
         <Thickness x:Key="ButtonPadding">12,5</Thickness>
         <Thickness x:Key="FieldLabelMargin">0,12,0,4</Thickness>
@@ -48,10 +51,39 @@
         <Style TargetType="Button">
             <Setter Property="MinHeight" Value="{StaticResource ControlHeight}" />
             <Setter Property="Padding" Value="{StaticResource ButtonPadding}" />
-            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
-            <Setter Property="Background" Value="{StaticResource ControlBg}" />
-            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+            <Setter Property="Background" Value="{DynamicResource ControlBg}" />
+            <Setter Property="Foreground" Value="{DynamicResource Ink}" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource ControlHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SurfaceRaised}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="WindowButton" TargetType="Button">
@@ -62,26 +94,163 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+            <Setter Property="Foreground" Value="{DynamicResource Muted}" />
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
             <Setter Property="FontSize" Value="9" />
             <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource ControlHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SurfaceRaised}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="WindowDangerButton" TargetType="Button" BasedOn="{StaticResource WindowButton}">
+            <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource ControlHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SurfaceRaised}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="{StaticResource Accent}" />
-            <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
-            <Setter Property="Foreground" Value="{StaticResource AccentText}" />
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentText}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Opacity" Value="0.88" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentText}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chrome" Property="Opacity" Value="0.76" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentText}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <Style TargetType="TextBox">
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource ControlHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SurfaceRaised}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SideIconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource SideMuted}" />
+            <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SideHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource SideMuted}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SideSelection}" />
+                                <Setter Property="Foreground" Value="{DynamicResource SideMuted}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BaseTextBox" TargetType="TextBox">
             <Setter Property="MinHeight" Value="{StaticResource ControlHeight}" />
             <Setter Property="Padding" Value="{StaticResource ControlPadding}" />
-            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
-            <Setter Property="Background" Value="{StaticResource ControlBg}" />
-            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+            <Setter Property="Background" Value="{DynamicResource ControlBg}" />
+            <Setter Property="Foreground" Value="{DynamicResource Ink}" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
+
+        <Style TargetType="TextBox" BasedOn="{StaticResource BaseTextBox}" />
 
         <Style x:Key="SelectableTextBox" TargetType="TextBox">
             <Setter Property="IsReadOnly" Value="True" />
@@ -90,31 +259,45 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="MinHeight" Value="0" />
             <Setter Property="IsTabStop" Value="False" />
-            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="Foreground" Value="{DynamicResource Ink}" />
         </Style>
 
         <Style x:Key="SideTitleText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource SideMuted}" />
+            <Setter Property="Foreground" Value="{DynamicResource SideMuted}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
         <Style x:Key="FieldLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="{StaticResource FontSizeLabel}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{StaticResource Subtle}" />
+            <Setter Property="Foreground" Value="{DynamicResource Subtle}" />
             <Setter Property="Margin" Value="{StaticResource FieldLabelMargin}" />
         </Style>
 
-        <Style x:Key="FieldBox" TargetType="TextBox">
-            <Setter Property="IsReadOnly" Value="True" />
-            <Setter Property="Background" Value="{StaticResource SurfaceAlt}" />
-            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
-            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+        <Style x:Key="DetailTextBox" TargetType="TextBox" BasedOn="{StaticResource BaseTextBox}">
+            <Setter Property="Background" Value="{DynamicResource SurfaceAlt}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+            <Setter Property="Foreground" Value="{DynamicResource Ink}" />
             <Setter Property="VerticalContentAlignment" Value="Top" />
         </Style>
 
+        <Style x:Key="ReadOnlyDetailTextBox" TargetType="TextBox" BasedOn="{StaticResource DetailTextBox}">
+            <Setter Property="IsReadOnly" Value="True" />
+        </Style>
+
+        <Style x:Key="WrappingReadOnlyDetailTextBox" TargetType="TextBox" BasedOn="{StaticResource ReadOnlyDetailTextBox}">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Height" Value="{StaticResource DetailTwoLineHeight}" />
+        </Style>
+
+        <Style x:Key="MultilineDetailTextBox" TargetType="TextBox" BasedOn="{StaticResource DetailTextBox}">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="Height" Value="{StaticResource DetailTwoLineHeight}" />
+        </Style>
+
         <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="Foreground" Value="{DynamicResource Ink}" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -125,9 +308,9 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <Border x:Name="Box" Width="16" Height="16" CornerRadius="3" BorderThickness="1"
-                                    BorderBrush="{StaticResource Line}" Background="{StaticResource ControlBg}" VerticalAlignment="Center">
+                                    BorderBrush="{DynamicResource Line}" Background="{DynamicResource ControlBg}" VerticalAlignment="Center">
                                 <TextBlock x:Name="CheckMark" Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="11"
-                                           Foreground="{StaticResource AccentText}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource AccentText}" HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Visibility="Collapsed" />
                             </Border>
                             <ContentPresenter Grid.Column="1" Margin="7,0,0,0" RecognizesAccessKey="True"
@@ -135,8 +318,8 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Box" Property="Background" Value="{StaticResource Accent}" />
-                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Accent}" />
+                                <Setter TargetName="Box" Property="Background" Value="{DynamicResource Accent}" />
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Accent}" />
                                 <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
@@ -158,7 +341,7 @@
         <Style x:Key="CategoryItemStyle" TargetType="ListBoxItem">
             <Setter Property="Padding" Value="10,8" />
             <Setter Property="Margin" Value="0,1" />
-            <Setter Property="Foreground" Value="{StaticResource SideMuted}" />
+            <Setter Property="Foreground" Value="{DynamicResource SideMuted}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -169,11 +352,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Row" Property="Background" Value="{StaticResource SideHover}" />
+                                <Setter TargetName="Row" Property="Background" Value="{DynamicResource SideHover}" />
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Row" Property="Background" Value="{StaticResource SideSelection}" />
-                                <Setter Property="Foreground" Value="{StaticResource SideMuted}" />
+                                <Setter TargetName="Row" Property="Background" Value="{DynamicResource SideSelection}" />
+                                <Setter Property="Foreground" Value="{DynamicResource SideMuted}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -188,7 +371,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid Background="{StaticResource WindowBg}">
+    <Grid Background="{DynamicResource WindowBg}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="260" />
             <ColumnDefinition Width="*" />
@@ -198,13 +381,19 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Grid.RowSpan="2" Background="{StaticResource Side}" Padding="18,24,18,18">
+        <Border Grid.RowSpan="2" Background="{DynamicResource Side}" Padding="18,24,18,18" MouseLeftButtonDown="DragArea_MouseLeftButtonDown">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Top">
-                    <TextBlock Text="{services:Loc app_title}" FontSize="{StaticResource FontSizeHero}" FontWeight="SemiBold" Foreground="{StaticResource SideMuted}" MouseLeftButtonDown="DragArea_MouseLeftButtonDown" />
-                    <TextBox x:Name="HeaderSummaryText" Text="{services:Loc app_subtitle_scanning}" Foreground="{StaticResource SideSubtle}" Style="{StaticResource SelectableTextBox}" Margin="0,6,0,18" />
+                    <DockPanel MouseLeftButtonDown="DragArea_MouseLeftButtonDown">
+                        <Button x:Name="ThemeButton" DockPanel.Dock="Right" Width="30" Height="30"
+                                Style="{StaticResource SideIconButton}" Click="ThemeButton_Click">
+                            <TextBlock x:Name="ThemeButtonIcon" Text="&#xE771;" FontFamily="Segoe MDL2 Assets" FontSize="15" />
+                        </Button>
+                        <TextBlock Text="{services:Loc app_title}" FontSize="{StaticResource FontSizeHero}" FontWeight="SemiBold" Foreground="{DynamicResource SideMuted}" />
+                    </DockPanel>
+                    <TextBox x:Name="HeaderSummaryText" Text="{services:Loc app_subtitle_scanning}" Foreground="{DynamicResource SideSubtle}" Style="{StaticResource SelectableTextBox}" Margin="0,6,0,18" />
 
-                    <TextBlock Text="{services:Loc search_placeholder}" Foreground="{StaticResource SideSubtle}" FontSize="{StaticResource FontSizeLabel}" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <TextBlock Text="{services:Loc search_placeholder}" Foreground="{DynamicResource SideSubtle}" FontSize="{StaticResource FontSizeLabel}" FontWeight="SemiBold" Margin="0,0,0,6" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -215,7 +404,7 @@
                             <TextBlock Text="&#xE71C;" FontFamily="Segoe MDL2 Assets" />
                         </Button>
                         <Popup x:Name="FilterPopup" Grid.ColumnSpan="2" PlacementTarget="{Binding ElementName=FilterButton}" Placement="Bottom" StaysOpen="False">
-                            <Border Background="{StaticResource SurfaceRaised}" BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="14" Width="250">
+                            <Border Background="{DynamicResource SurfaceRaised}" BorderBrush="{DynamicResource Line}" BorderThickness="1" Padding="14" Width="250">
                                 <StackPanel>
                                     <TextBlock Text="{services:Loc search_filter}" FontWeight="SemiBold" Margin="0,0,0,10" />
                                     <CheckBox x:Name="UseRegexBox" Content="{services:Loc regex_enabled}" Checked="SearchOptions_Changed" Unchecked="SearchOptions_Changed" Margin="0,0,0,10" />
@@ -264,27 +453,27 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Background="{StaticResource Surface}" MouseLeftButtonDown="DragArea_MouseLeftButtonDown">
+            <Border Grid.Row="0" Background="{DynamicResource Surface}" MouseLeftButtonDown="DragArea_MouseLeftButtonDown">
                 <DockPanel LastChildFill="False">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button Style="{StaticResource WindowButton}" Content="&#xE921;" Click="MinimizeButton_Click" ToolTip="Minimize" />
                         <Button x:Name="MaximizeButton" Style="{StaticResource WindowButton}" Content="&#xE922;" Click="MaximizeButton_Click" ToolTip="Maximize" />
-                        <Button Style="{StaticResource WindowButton}" Content="&#xE8BB;" Click="CloseButton_Click" ToolTip="Close" Foreground="{StaticResource Danger}" />
+                        <Button Style="{StaticResource WindowDangerButton}" Content="&#xE8BB;" Click="CloseButton_Click" ToolTip="Close" />
                     </StackPanel>
                 </DockPanel>
             </Border>
 
-            <Border Grid.Row="1" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="18,6,18,10">
+            <Border Grid.Row="1" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="18,0,18,10" MouseLeftButtonDown="DragArea_MouseLeftButtonDown">
                 <DockPanel LastChildFill="True">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                         <CheckBox x:Name="EnableSwitch" Content="{services:Loc enable}" Checked="EnableSwitch_Changed" Unchecked="EnableSwitch_Changed" Margin="0,0,14,0" VerticalAlignment="Center" VerticalContentAlignment="Center" />
                         <Button x:Name="SaveButton" Content="{services:Loc action_save}" Click="SaveButton_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" />
-                        <Button x:Name="DeleteButton" Content="{services:Loc action_delete}" Click="DeleteButton_Click" Foreground="{StaticResource Danger}" Margin="0,0,8,0" />
+                        <Button x:Name="DeleteButton" Content="{services:Loc action_delete}" Click="DeleteButton_Click" Style="{StaticResource DangerButton}" Margin="0,0,8,0" />
                         <Button Content="{services:Loc action_copy}" Click="CopyAllButton_Click" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock x:Name="ListTitleText" Text="{services:Loc list_title}" FontSize="{StaticResource FontSizeTitle}" FontWeight="SemiBold" Foreground="{StaticResource Ink}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                        <TextBlock x:Name="CountText" Foreground="{StaticResource Muted}" FontSize="{StaticResource FontSizeBody}" Margin="10,1,0,0" VerticalAlignment="Center" />
+                        <TextBlock x:Name="ListTitleText" Text="{services:Loc list_title}" FontSize="{StaticResource FontSizeTitle}" FontWeight="SemiBold" Foreground="{DynamicResource Ink}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock x:Name="CountText" Foreground="{DynamicResource Muted}" FontSize="{StaticResource FontSizeBody}" Margin="10,1,0,0" VerticalAlignment="Center" />
                     </StackPanel>
                 </DockPanel>
             </Border>
@@ -295,13 +484,13 @@
                     <ColumnDefinition Width="54*" />
                 </Grid.ColumnDefinitions>
 
-                <Border Background="{StaticResource SurfaceAlt}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
+                <Border Background="{DynamicResource SurfaceAlt}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <Border Padding="14,10" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Background="{StaticResource WindowBg}">
+                        <Border Padding="14,10" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Background="{DynamicResource WindowBg}">
                             <DockPanel LastChildFill="True" MinHeight="32">
                                 <Grid DockPanel.Dock="Right" Width="230" Margin="14,0,0,0" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
@@ -313,7 +502,7 @@
                                         <TextBlock Text="&#xE71C;" FontFamily="Segoe MDL2 Assets" />
                                     </Button>
                                     <Popup x:Name="CurrentListFilterPopup" Grid.ColumnSpan="2" PlacementTarget="{Binding ElementName=CurrentListFilterButton}" Placement="Bottom" StaysOpen="False">
-                                        <Border Background="{StaticResource SurfaceRaised}" BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="14" Width="250">
+                                        <Border Background="{DynamicResource SurfaceRaised}" BorderBrush="{DynamicResource Line}" BorderThickness="1" Padding="14" Width="250">
                                             <StackPanel>
                                                 <TextBlock Text="{services:Loc list_search_filter}" FontWeight="SemiBold" Margin="0,0,0,10" />
                                                 <CheckBox x:Name="CurrentUseRegexBox" Content="{services:Loc regex_enabled}" Checked="CurrentSearchOptions_Changed" Unchecked="CurrentSearchOptions_Changed" Margin="0,0,0,10" />
@@ -329,13 +518,13 @@
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <CheckBox x:Name="ShellVerbFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" Margin="0,0,18,0" VerticalAlignment="Center" VerticalContentAlignment="Center">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="{StaticResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
+                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
                                             <TextBlock Text="{services:Loc filter_shell}" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </CheckBox>
                                     <CheckBox x:Name="ShellExFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" VerticalAlignment="Center" VerticalContentAlignment="Center">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" Foreground="{StaticResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
+                                            <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
                                             <TextBlock Text="{services:Loc filter_shellex}" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </CheckBox>
@@ -346,12 +535,12 @@
                         <ListBox x:Name="ItemsList" Grid.Row="1" SelectionChanged="ItemsList_SelectionChanged" ItemContainerStyle="{StaticResource EntryItemStyle}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Padding="14,11" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Background="{StaticResource Surface}">
+                                    <Border Padding="14,11" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Background="{DynamicResource Surface}">
                                         <DockPanel>
                                             <Image DockPanel.Dock="Left" Width="22" Height="22" Source="{Binding IconImageSource}" Margin="0,2,11,0" />
                                             <StackPanel>
-                                                <TextBlock Text="{Binding CompactTitle}" FontWeight="SemiBold" Foreground="{StaticResource Ink}" TextTrimming="CharacterEllipsis" TextDecorations="{Binding PendingDeleteTextDecorations}" />
-                                                <TextBlock Text="{Binding CompactSubtitle}" FontSize="{StaticResource FontSizeLabel}" Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                                <TextBlock Text="{Binding CompactTitle}" FontWeight="SemiBold" Foreground="{DynamicResource Ink}" TextTrimming="CharacterEllipsis" TextDecorations="{Binding PendingDeleteTextDecorations}" />
+                                                <TextBlock Text="{Binding CompactSubtitle}" FontSize="{StaticResource FontSizeLabel}" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>
@@ -361,17 +550,17 @@
                     </Grid>
                 </Border>
 
-                <Grid Grid.Column="1" Background="{StaticResource Surface}">
+                <Grid Grid.Column="1" Background="{DynamicResource Surface}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <Border Padding="18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
+                    <Border Padding="18" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
                         <DockPanel LastChildFill="True">
                             <Image x:Name="HeaderIcon" DockPanel.Dock="Left" Width="44" Height="44" Margin="0,0,14,0" Visibility="Collapsed" />
                             <StackPanel>
                                 <TextBox x:Name="MenuNameText" Text="{services:Loc detail_empty_title}" FontSize="{StaticResource FontSizeTitle}" FontWeight="SemiBold" TextWrapping="Wrap" Style="{StaticResource SelectableTextBox}" />
-                                <TextBox x:Name="DescriptionText" Foreground="{StaticResource Muted}" TextWrapping="Wrap" Style="{StaticResource SelectableTextBox}" Margin="0,5,0,0" />
+                                <TextBox x:Name="DescriptionText" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Style="{StaticResource SelectableTextBox}" Margin="0,5,0,0" />
                             </StackPanel>
                         </DockPanel>
                     </Border>
@@ -381,11 +570,11 @@
                             <UniformGrid Columns="2">
                                 <StackPanel Margin="0,0,8,0">
                                     <TextBlock Text="{services:Loc field_category}" Style="{StaticResource FieldLabel}" />
-                                    <TextBox x:Name="CategoryBox" Style="{StaticResource FieldBox}" />
+                                    <TextBox x:Name="CategoryBox" Style="{StaticResource ReadOnlyDetailTextBox}" />
                                 </StackPanel>
                                 <StackPanel Margin="8,0,0,0">
                                     <TextBlock Text="{services:Loc field_scope}" Style="{StaticResource FieldLabel}" />
-                                    <TextBox x:Name="ScopeBox" Style="{StaticResource FieldBox}" />
+                                    <TextBox x:Name="ScopeBox" Style="{StaticResource ReadOnlyDetailTextBox}" />
                                 </StackPanel>
                             </UniformGrid>
 
@@ -393,52 +582,52 @@
                                 <Button DockPanel.Dock="Right" Click="OpenRegistryButton_Click" Margin="10,0,0,0" Content="{services:Loc action_open_registry}" />
                                 <TextBlock Text="{services:Loc field_registry_path}" Style="{StaticResource FieldLabel}" Margin="0" VerticalAlignment="Center" />
                             </DockPanel>
-                            <TextBox x:Name="RegistryPathBox" Style="{StaticResource FieldBox}" TextWrapping="Wrap" />
+                            <TextBox x:Name="RegistryPathBox" Style="{StaticResource WrappingReadOnlyDetailTextBox}" />
 
                             <UniformGrid Columns="2">
                                 <StackPanel Margin="0,0,8,0">
                                     <TextBlock Text="{services:Loc field_key}" Style="{StaticResource FieldLabel}" />
-                                    <TextBox x:Name="KeyNameBox" Style="{StaticResource FieldBox}" />
+                                    <TextBox x:Name="KeyNameBox" Style="{StaticResource ReadOnlyDetailTextBox}" />
                                 </StackPanel>
                                 <StackPanel Margin="8,0,0,0">
                                     <TextBlock Text="{services:Loc field_value_name}" Style="{StaticResource FieldLabel}" />
-                                    <TextBox x:Name="ValueNameBox" Style="{StaticResource FieldBox}" />
+                                    <TextBox x:Name="ValueNameBox" Style="{StaticResource ReadOnlyDetailTextBox}" />
                                 </StackPanel>
                             </UniformGrid>
 
                             <TextBlock Text="{services:Loc field_value}" Style="{StaticResource FieldLabel}" />
-                            <TextBox x:Name="ValueBox" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="48" VerticalContentAlignment="Top" />
+                            <TextBox x:Name="ValueBox" Style="{StaticResource MultilineDetailTextBox}" />
 
                             <DockPanel Margin="0,12,0,4">
                                 <Button x:Name="OpenClsidButton" DockPanel.Dock="Right" Click="OpenClsidRegistryButton_Click" Margin="10,0,0,0" Content="{services:Loc action_open_clsid}" />
                                 <TextBlock Text="{services:Loc field_clsid}" Style="{StaticResource FieldLabel}" Margin="0" VerticalAlignment="Center" />
                             </DockPanel>
-                            <TextBox x:Name="ClsidBox" Style="{StaticResource FieldBox}" />
+                            <TextBox x:Name="ClsidBox" Style="{StaticResource ReadOnlyDetailTextBox}" />
 
                             <DockPanel Margin="0,12,0,4">
                                 <Button x:Name="OpenDllPathButton" DockPanel.Dock="Right" Click="OpenDllPathButton_Click" Margin="10,0,0,0" Content="{services:Loc action_open_path}" />
                                 <TextBlock Text="{services:Loc field_dll}" Style="{StaticResource FieldLabel}" Margin="0" VerticalAlignment="Center" />
                             </DockPanel>
-                            <TextBox x:Name="DllPathBox" Style="{StaticResource FieldBox}" TextWrapping="Wrap" />
+                            <TextBox x:Name="DllPathBox" Style="{StaticResource WrappingReadOnlyDetailTextBox}" />
 
                             <DockPanel Margin="0,12,0,4">
                                 <Button x:Name="OpenIconPathButton" DockPanel.Dock="Right" Click="OpenIconPathButton_Click" Margin="10,0,0,0" Content="{services:Loc action_open_path}" />
                                 <Button DockPanel.Dock="Right" Click="ChooseIconButton_Click" Margin="10,0,0,0" Content="{services:Loc action_choose_icon}" />
                                 <TextBlock Text="{services:Loc field_icon}" Style="{StaticResource FieldLabel}" Margin="0" VerticalAlignment="Center" />
                             </DockPanel>
-                            <TextBox x:Name="IconResourceBox" TextWrapping="Wrap" VerticalContentAlignment="Top" />
+                            <TextBox x:Name="IconResourceBox" Style="{StaticResource MultilineDetailTextBox}" />
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
             </Grid>
         </Grid>
 
-        <Border Grid.Column="1" Grid.Row="1" Padding="14,8" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
+        <Border Grid.Column="1" Grid.Row="1" Padding="14,8" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBox Text="{services:Loc status_print_hint}" Foreground="{StaticResource Muted}" Style="{StaticResource SelectableTextBox}" />
+                    <TextBox Text="{services:Loc status_print_hint}" Foreground="{DynamicResource Muted}" Style="{StaticResource SelectableTextBox}" />
                     <TextBlock Margin="12,0,0,0" VerticalAlignment="Center">
-                        <Hyperlink NavigateUri="https://github.com/ohyooo/RightMgr" RequestNavigate="SourceCodeLink_RequestNavigate" Foreground="{StaticResource Muted}">
+                        <Hyperlink NavigateUri="https://github.com/ohyooo/RightMgr" RequestNavigate="SourceCodeLink_RequestNavigate" Foreground="{DynamicResource Muted}">
                             源代码
                         </Hyperlink>
                     </TextBlock>
