@@ -326,7 +326,14 @@
 
         <Border Grid.Column="1" Grid.Row="1" Padding="14,8" Background="#FFFFFF" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
             <DockPanel>
-                <TextBox DockPanel.Dock="Right" Text="{services:Loc status_print_hint}" Foreground="{StaticResource Muted}" Style="{StaticResource SelectableTextBox}" />
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBox Text="{services:Loc status_print_hint}" Foreground="{StaticResource Muted}" Style="{StaticResource SelectableTextBox}" />
+                    <TextBlock Margin="12,0,0,0" VerticalAlignment="Center">
+                        <Hyperlink NavigateUri="https://github.com/ohyooo/RightMgr" RequestNavigate="SourceCodeLink_RequestNavigate">
+                            源代码
+                        </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
                 <TextBox x:Name="StatusText" Style="{StaticResource SelectableTextBox}" />
             </DockPanel>
         </Border>

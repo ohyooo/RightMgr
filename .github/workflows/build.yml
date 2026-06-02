@@ -1,0 +1,94 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - master
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  PROJECT_FILE: RightMgr.csproj
+  CONFIGURATION: Release
+  TARGET_FRAMEWORK: net8.0-windows10.0.19041.0
+
+jobs:
+  build:
+    name: Build and package
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - profile: win-x86
+            rid: win-x86
+            platform: x86
+          - profile: win-x64
+            rid: win-x64
+            platform: x64
+          - profile: win-arm64
+            rid: win-arm64
+            platform: ARM64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore $env:PROJECT_FILE
+
+      - name: Build
+        run: dotnet build $env:PROJECT_FILE -c $env:CONFIGURATION -p:Platform=${{ matrix.platform }} -p:PlatformTarget=${{ matrix.platform }} --no-restore
+
+      - name: Publish
+        run: dotnet publish $env:PROJECT_FILE -c $env:CONFIGURATION -p:PublishProfile=${{ matrix.profile }} -p:Platform=${{ matrix.platform }} -p:PlatformTarget=${{ matrix.platform }} --no-restore
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $publishDir = Join-Path $env:GITHUB_WORKSPACE "bin\$env:CONFIGURATION\$env:TARGET_FRAMEWORK\${{ matrix.rid }}\publish"
+          $distDir = Join-Path $env:GITHUB_WORKSPACE "dist"
+          $zipPath = Join-Path $distDir "RightMgr-${{ matrix.rid }}.zip"
+
+          if (-not (Test-Path $publishDir)) {
+            throw "Publish directory not found: $publishDir"
+          }
+
+          New-Item -ItemType Directory -Force $distDir | Out-Null
+          if (Test-Path $zipPath) {
+            Remove-Item -Force $zipPath
+          }
+
+          Compress-Archive -Path (Join-Path $publishDir "*") -DestinationPath $zipPath -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RightMgr-${{ matrix.rid }}
+          path: dist/RightMgr-${{ matrix.rid }}.zip
+          if-no-files-found: error
+
+      - name: Upload release asset
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/RightMgr-${{ matrix.rid }}.zip

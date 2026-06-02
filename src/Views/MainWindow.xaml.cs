@@ -4,6 +4,7 @@ using System.Windows.Documents;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Text.RegularExpressions;
 using RightMgr.Models;
 using RightMgr.Services;
@@ -696,6 +697,23 @@ public partial class MainWindow : Window
             Clipboard.SetText(text);
             StatusText.Text = $"已打印全部 {_items.Count} 项到 {path}，并复制到剪贴板。";
             MessageBox.Show(this, $"已输出：\n{path}", LocalizationService.T("dialog_notice"), MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, LocalizationService.T("dialog_notice"), MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void SourceCodeLink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = e.Uri.AbsoluteUri,
+                UseShellExecute = true
+            });
+            e.Handled = true;
         }
         catch (Exception ex)
         {

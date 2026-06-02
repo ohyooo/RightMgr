@@ -2,6 +2,10 @@
 
 RightMgr 是一个用于查看和管理 Windows 右键菜单项的桌面工具。项目基于 .NET 8、WPF 和 Windows App SDK 构建，目标平台为 Windows 10 1809 及以上版本。
 
+## 运行截图
+
+![RightMgr 运行截图](Assets/ui.png)
+
 ## 功能
 
 - 扫描 Windows 资源管理器右键菜单相关注册表项。
@@ -112,39 +116,6 @@ bin\Release\net8.0-windows10.0.19041.0\win-x64\single\
 ```
 
 部分右键菜单项修改需要管理员权限。建议以管理员身份运行程序，以确保注册表写入操作可以正常完成。
-
-## GitHub Actions
-
-仓库包含 `.github/workflows/build.yml`，用于自动编译、发布和上传产物。
-
-触发规则：
-
-- 推送到 `main` 或 `master` 分支时自动编译。
-- 创建 Pull Request 到 `main` 或 `master` 分支时自动编译。
-- 推送 `v*` 标签时自动编译、打包，并发布到 GitHub Release。
-- 在 GitHub Release 页面发布 Release 时自动编译、打包，并上传到该 Release。
-- 也可以在 Actions 页面手动运行。
-
-普通分支构建会上传 GitHub Actions artifacts：
-
-- `RightMgr-win-x86`
-- `RightMgr-win-x64`
-- `RightMgr-win-arm64`
-
-Release 构建会额外生成并上传以下 Release assets：
-
-- `RightMgr-win-x86.zip`
-- `RightMgr-win-x64.zip`
-- `RightMgr-win-arm64.zip`
-
-发布 Release 的推荐方式：
-
-```powershell
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-也可以在 GitHub 网页创建并发布 Release。工作流会使用仓库默认的 `GITHUB_TOKEN` 上传 Release 文件，不需要额外配置密钥。
 
 ## 项目结构
 
