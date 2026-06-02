@@ -78,9 +78,14 @@ jobs:
           path: dist/RightMgr-${{ matrix.rid }}.zip
           if-no-files-found: error
 
-  release-single-file:
-    name: Publish release single file
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release'
+      - name: Upload release asset
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/RightMgr-${{ matrix.rid }}.zip
+
+  single-file:
+    name: Build single file
     runs-on: windows-latest
 
     steps:
@@ -110,7 +115,15 @@ jobs:
           New-Item -ItemType Directory -Force $distDir | Out-Null
           Copy-Item -LiteralPath $sourcePath -Destination $assetPath -Force
 
-      - name: Upload release asset
+      - name: Upload single-file artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RightMgr-win-x64-single
+          path: dist/RightMgr.exe
+          if-no-files-found: error
+
+      - name: Upload single-file release asset
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/RightMgr.exe

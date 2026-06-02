@@ -69,7 +69,7 @@ dotnet build .\RightMgr.csproj -c Release -p:Platform=x64 -p:PlatformTarget=x64
 | `Properties\PublishProfiles\win-x86.pubxml` | x86 | `win-x86` | x86 自包含发布 |
 | `Properties\PublishProfiles\win-x64.pubxml` | x64 | `win-x64` | x64 自包含发布 |
 | `Properties\PublishProfiles\win-arm64.pubxml` | ARM64 | `win-arm64` | ARM64 自包含发布 |
-| `Properties\PublishProfiles\win-x64-single.pubxml` | x64 | `win-x64` | x64 自包含单文件发布 |
+| `Properties\PublishProfiles\win-x64-single.pubxml` | x64 | `win-x64` | x64 框架依赖单文件发布 |
 
 发布 x64 自包含版本：
 
@@ -106,6 +106,8 @@ x64 单文件发布产物默认输出到：
 ```text
 bin\Release\net8.0-windows10.0.19041.0\win-x64\single\
 ```
+
+x64 单文件版本需要目标机器已安装 .NET 8 Desktop Runtime 和 Windows App Runtime。
 
 ## 运行
 
