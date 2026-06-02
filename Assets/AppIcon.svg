@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="RightMgr app icon">
+  <defs>
+    <linearGradient id="bg" x1="32" y1="24" x2="224" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="70" y1="54" x2="190" y2="178" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCEAFE"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#bg)"/>
+  <rect x="56" y="50" width="132" height="142" rx="20" fill="url(#panel)" opacity="0.98"/>
+  <rect x="78" y="78" width="78" height="12" rx="6" fill="#1E3A8A"/>
+  <rect x="78" y="108" width="88" height="12" rx="6" fill="#2563EB"/>
+  <rect x="78" y="138" width="62" height="12" rx="6" fill="#38BDF8"/>
+  <path d="M144 116L206 177L171 185L158 220L132 125C130 118 139 111 144 116Z" fill="#0F172A"/>
+  <path d="M163 166L181 209" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="190" cy="72" r="24" fill="#38BDF8"/>
+  <path d="M179 72L187 80L202 63" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

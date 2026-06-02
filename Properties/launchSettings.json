@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "RightMgr (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "RightMgr (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

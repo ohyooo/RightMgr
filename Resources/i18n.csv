@@ -1,0 +1,65 @@
+key,zh-Hans,en-US
+app_title,右键管理器,RightMgr
+app_subtitle_scanning,正在扫描右键菜单...,Scanning context menu entries...
+nav_title,范围,Scopes
+search_placeholder,全局搜索,Global search
+list_search_placeholder,搜索当前列表,Search current list
+list_search_filter,当前列表搜索范围,List search scope
+search_filter,搜索范围,Search scope
+regex_enabled,开启正则,Use regex
+search_name,名称 / 标题,Name / title
+search_category,分类 / 范围,Category / scope
+search_registry,注册表路径 / 项,Registry path / key
+search_value,值 / 命令,Value / command
+search_com,CLSID / COM / DLL,CLSID / COM / DLL
+list_title,右键菜单项,Context menu entries
+filter_shell,传统 shell,Shell verbs
+filter_shellex,ShellEx / COM,ShellEx / COM
+action_refresh,刷新,Refresh
+action_print_all,打印全部,Print all
+action_open_registry,打开注册表,Open Registry
+action_open_clsid,打开 CLSID,Open CLSID
+action_open_path,打开路径,Open path
+action_choose_icon,选择图标,Choose icon
+action_save,保存,Save
+action_delete,删除,Delete
+action_cancel_delete,取消删除,Cancel delete
+action_copy,复制,Copy
+enable,启用,Enabled
+detail_empty_title,选择一个菜单项,Select an entry
+detail_no_match_title,没有匹配项,No matches
+detail_no_match_subtitle,调整分类、类型或搜索条件。,Adjust category type or search filters.
+field_category,分类,Category
+field_scope,范围,Scope
+field_registry_path,注册表路径,Registry path
+field_key,项,Key
+field_value_name,值名,Value name
+field_value,值,Value
+field_clsid,CLSID,CLSID
+field_dll,COM / DLL 路径,COM / DLL path
+field_icon,图标资源,Icon resource
+status_print_hint,打印全部会输出到桌面 RightMgr-print-all.txt 并复制到剪贴板,Print all writes RightMgr-print-all.txt to Desktop and copies it to Clipboard
+status_summary,当前列表：传统 shell {0} 项，ShellEx/COM {1} 项，已禁用 {2} 项。,Current list: {0} shell verbs, {1} ShellEx/COM, {2} disabled.
+status_scanned,共扫描到 {0} 项，覆盖 HKCU/HKLM/HKCR、shell、shellex、扩展名与 PowerToys 等常见入口。,Scanned {0} entries across HKCU/HKLM/HKCR shell shellex extensions and common entries such as PowerToys.
+status_regex_invalid,正则表达式无效。,Invalid regular expression.
+status_deleted,已删除当前项。,Current entry deleted.
+status_saved,已保存当前项。,Current entry saved.
+status_copy,已复制当前项详情。,Entry details copied.
+status_pending_delete,已标记待删除，点击保存后才会真正删除。,Marked for deletion. Click Save to delete permanently.
+status_cancel_delete,已取消待删除。,Deletion mark removed.
+dialog_notice,提示,Notice
+dialog_icon_title,选择图标资源,Choose icon resource
+dialog_icon_filter,图标/程序/库文件|*.ico;*.exe;*.dll;*.icl;*.png|所有文件|*.*,Icons/programs/libraries|*.ico;*.exe;*.dll;*.icl;*.png|All files|*.*
+format_menu_name,菜单名,Menu name
+format_raw_name,原始名,Raw name
+format_category,分类,Category
+format_scope,范围,Scope
+format_registry,注册表路径,Registry path
+format_key,项,Key
+format_value_name,值名,Value name
+format_value,值,Value
+format_clsid_name,CLSID 名称,CLSID name
+format_localized,LocalizedString,LocalizedString
+format_dll,COM / DLL 路径,COM / DLL path
+format_icon,图标资源,Icon resource
+format_enabled,启用,Enabled
