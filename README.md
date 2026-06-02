@@ -95,6 +95,67 @@ dotnet publish .\RightMgr.csproj -c Release -p:PublishProfile=win-arm64
 dotnet publish .\RightMgr.csproj -c Release -p:PublishProfile=win-x64-single
 ```
 
+也可以不依赖发布配置，直接通过命令行指定发布形态。下面示例以 `win-x64` 为例，`-r` 可替换为 `win-x86` 或 `win-arm64`。
+
+| 发布形态 | 是否单文件 | 包含 .NET Runtime | 包含 Windows App Runtime | 目标机器要求 |
+| --- | --- | --- | --- | --- |
+| 多文件，框架依赖 | 否 | 否 | 否 | 已安装 .NET 8 Desktop Runtime 和 Windows App Runtime |
+| 多文件，包含 Windows App Runtime | 否 | 否 | 是 | 已安装 .NET 8 Desktop Runtime |
+| 多文件，自包含 | 否 | 是 | 否 | 已安装 Windows App Runtime |
+| 多文件，完全自包含 | 否 | 是 | 是 | 无需单独安装 .NET 8 Desktop Runtime / Windows App Runtime |
+| 单文件，框架依赖 | 是 | 否 | 否 | 已安装 .NET 8 Desktop Runtime 和 Windows App Runtime |
+| 单文件，包含 Windows App Runtime | 是 | 否 | 是 | 已安装 .NET 8 Desktop Runtime |
+| 单文件，包含 .NET Runtime | 是 | 是 | 否 | 已安装 Windows App Runtime |
+| 单文件，完全自包含 | 是 | 是 | 是 | 无需单独安装 .NET 8 Desktop Runtime / Windows App Runtime |
+
+多文件，框架依赖：
+
+```powershell
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -p:WindowsAppSDKSelfContained=false
+```
+
+多文件，包含 Windows App Runtime：
+
+```powershell
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -p:WindowsAppSDKSelfContained=true
+```
+
+多文件，包含 .NET Runtime：
+
+```powershell
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:WindowsAppSDKSelfContained=false
+```
+
+多文件，完全自包含：
+
+```powershell
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:WindowsAppSDKSelfContained=true
+```
+
+单文件，框架依赖：
+
+```powershell
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=false -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
+```
+
+单文件，包含 Windows App Runtime：
+
+```powershell
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
+```
+
+单文件，包含 .NET Runtime：
+
+```powershell
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=false -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
+```
+
+单文件，完全自包含：
+
+```powershell
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
+```
+
 发布产物默认输出到：
 
 ```text
