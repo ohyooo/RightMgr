@@ -53,14 +53,8 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore
-        run: dotnet restore $env:PROJECT_FILE
-
-      - name: Build
-        run: dotnet build $env:PROJECT_FILE -c $env:CONFIGURATION -p:Platform=${{ matrix.platform }} -p:PlatformTarget=${{ matrix.platform }} --no-restore
-
       - name: Publish
-        run: dotnet publish $env:PROJECT_FILE -c $env:CONFIGURATION -p:PublishProfile=${{ matrix.profile }} -p:Platform=${{ matrix.platform }} -p:PlatformTarget=${{ matrix.platform }} --no-restore
+        run: dotnet publish $env:PROJECT_FILE -c $env:CONFIGURATION -r ${{ matrix.rid }} -p:PublishProfile=${{ matrix.profile }} -p:Platform=${{ matrix.platform }} -p:PlatformTarget=${{ matrix.platform }}
 
       - name: Package
         shell: pwsh
