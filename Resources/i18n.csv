@@ -16,7 +16,7 @@ list_title,右键菜单项,Context menu entries
 filter_shell,传统 shell,Shell verbs
 filter_shellex,ShellEx / COM,ShellEx / COM
 action_refresh,刷新,Refresh
-action_print_all,打印全部,Print all
+action_export,导出,Export
 action_open_registry,打开注册表,Open Registry
 action_open_clsid,打开 CLSID,Open CLSID
 action_open_path,打开路径,Open path
@@ -38,7 +38,16 @@ field_value,值,Value
 field_clsid,CLSID,CLSID
 field_dll,COM / DLL 路径,COM / DLL path
 field_icon,图标资源,Icon resource
-status_print_hint,打印全部会输出到桌面 RightMgr-print-all.txt 并复制到剪贴板,Print all writes RightMgr-print-all.txt to Desktop and copies it to Clipboard
+status_export_hint,导出当前扫描结果到文本文件,Export scanned entries to a text file
+status_exported,已导出 {0} 项到 {1},Exported {0} entries to {1}
+dialog_export_title,导出右键菜单项,Export context menu entries
+dialog_export_scope,导出范围,Export scope
+dialog_export_all,全部,All
+dialog_export_current,当前列表,Current list
+dialog_export_category,分类：{0},Category: {0}
+dialog_export_save,导出,Export
+dialog_export_cancel,取消,Cancel
+dialog_export_filter,文本文件|*.txt|所有文件|*.*,Text files|*.txt|All files|*.*
 status_summary,当前列表：传统 shell {0} 项，ShellEx/COM {1} 项，已禁用 {2} 项。,Current list: {0} shell verbs, {1} ShellEx/COM, {2} disabled.
 status_scanned,共扫描到 {0} 项，覆盖 HKCU/HKLM/HKCR、shell、shellex、扩展名与 PowerToys 等常见入口。,Scanned {0} entries across HKCU/HKLM/HKCR shell shellex extensions and common entries such as PowerToys.
 status_regex_invalid,正则表达式无效。,Invalid regular expression.

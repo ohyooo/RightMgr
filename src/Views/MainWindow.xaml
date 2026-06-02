@@ -425,10 +425,10 @@
                                 <TextBlock Text="{services:Loc action_refresh}" />
                             </StackPanel>
                         </Button>
-                        <Button Click="PrintAllButton_Click">
+                        <Button Click="ExportButton_Click">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xE749;" FontFamily="Segoe MDL2 Assets" Margin="{StaticResource InlineIconMargin}" />
-                                <TextBlock Text="{services:Loc action_print_all}" />
+                                <TextBlock Text="&#xEDE1;" FontFamily="Segoe MDL2 Assets" Margin="{StaticResource InlineIconMargin}" />
+                                <TextBlock Text="{services:Loc action_export}" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -480,8 +480,9 @@
 
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="46*" />
-                    <ColumnDefinition Width="54*" />
+                    <ColumnDefinition x:Name="ListPaneColumn" Width="420" MinWidth="258" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition x:Name="DetailPaneColumn" Width="*" MinWidth="360" />
                 </Grid.ColumnDefinitions>
 
                 <Border Background="{DynamicResource SurfaceAlt}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0">
@@ -491,8 +492,31 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <Border Padding="14,10" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Background="{DynamicResource WindowBg}">
-                            <DockPanel LastChildFill="True" MinHeight="32">
-                                <Grid DockPanel.Dock="Right" Width="230" Margin="14,0,0,0" VerticalAlignment="Center">
+                            <Grid x:Name="CurrentListToolbar" SizeChanged="CurrentListToolbar_SizeChanged">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" MinWidth="0" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <CheckBox x:Name="ShellVerbFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" Margin="0,0,18,0" VerticalAlignment="Center" VerticalContentAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
+                                            <TextBlock Text="{services:Loc filter_shell}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <CheckBox x:Name="ShellExFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" VerticalAlignment="Center" VerticalContentAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
+                                            <TextBlock Text="{services:Loc filter_shellex}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                </StackPanel>
+
+                                <Grid x:Name="CurrentListSearchPanel" Grid.Column="1" Width="230" Margin="14,0,0,0" VerticalAlignment="Top">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
@@ -515,21 +539,7 @@
                                         </Border>
                                     </Popup>
                                 </Grid>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <CheckBox x:Name="ShellVerbFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" Margin="0,0,18,0" VerticalAlignment="Center" VerticalContentAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
-                                            <TextBlock Text="{services:Loc filter_shell}" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </CheckBox>
-                                    <CheckBox x:Name="ShellExFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" VerticalAlignment="Center" VerticalContentAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
-                                            <TextBlock Text="{services:Loc filter_shellex}" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </CheckBox>
-                                </StackPanel>
-                            </DockPanel>
+                            </Grid>
                         </Border>
 
                         <ListBox x:Name="ItemsList" Grid.Row="1" SelectionChanged="ItemsList_SelectionChanged" ItemContainerStyle="{StaticResource EntryItemStyle}">
@@ -550,7 +560,15 @@
                     </Grid>
                 </Border>
 
-                <Grid Grid.Column="1" Background="{DynamicResource Surface}">
+                <GridSplitter Grid.Column="1"
+                              Width="5"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              Background="{DynamicResource Line}"
+                              ShowsPreview="False"
+                              DragCompleted="ContentSplitter_DragCompleted" />
+
+                <Grid Grid.Column="2" Background="{DynamicResource Surface}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
@@ -625,7 +643,7 @@
         <Border Grid.Column="1" Grid.Row="1" Padding="14,8" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBox Text="{services:Loc status_print_hint}" Foreground="{DynamicResource Muted}" Style="{StaticResource SelectableTextBox}" />
+                    <TextBox Text="{services:Loc status_export_hint}" Foreground="{DynamicResource Muted}" Style="{StaticResource SelectableTextBox}" />
                     <TextBlock Margin="12,0,0,0" VerticalAlignment="Center">
                         <Hyperlink NavigateUri="https://github.com/ohyooo/RightMgr" RequestNavigate="SourceCodeLink_RequestNavigate" Foreground="{DynamicResource Muted}">
                             源代码

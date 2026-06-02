@@ -8,6 +8,7 @@ using System.Windows.Navigation;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
+using Microsoft.Win32;
 using RightMgr.Models;
 using RightMgr.Services;
 using Registry = Microsoft.Win32.Registry;
@@ -25,6 +26,8 @@ public partial class MainWindow : Window
         public override string ToString() => $"{Name} ({Count})";
     }
 
+    private sealed record ExportScope(string Label, IReadOnlyList<ContextMenuItemInfo> Items);
+
     private List<ContextMenuItemInfo> _items = new();
     private List<ContextMenuItemInfo> _filtered = new();
     private ContextMenuItemInfo? _selected;
@@ -38,6 +41,8 @@ public partial class MainWindow : Window
         _themeMode = themeMode;
         InitializeComponent();
         AllowDrop = true;
+        ApplyWindowPlacement();
+        ApplyContentSplit();
         ApplyTheme();
         LoadData();
         Loaded += (_, _) => ApplyTheme();
@@ -54,6 +59,12 @@ public partial class MainWindow : Window
     {
         base.OnStateChanged(e);
         UpdateMaximizeButtonIcon();
+    }
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        SaveWindowPlacement();
+        base.OnClosing(e);
     }
 
     private nint WndProc(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
@@ -77,6 +88,48 @@ public partial class MainWindow : Window
         Background = BrushFromHex(_palette.Window);
         UpdateThemeButtonIcon();
         ApplyWindowChromeTheme(dark);
+    }
+
+    private void ApplyContentSplit()
+    {
+        var split = AppConfigService.LoadContentSplit() ?? 0.46;
+        Loaded += (_, _) =>
+        {
+            var total = ListPaneColumn.ActualWidth + DetailPaneColumn.ActualWidth;
+            if (total <= 0)
+                return;
+
+            ListPaneColumn.Width = new GridLength(Math.Clamp(total * split, ListPaneColumn.MinWidth, total - DetailPaneColumn.MinWidth));
+            DetailPaneColumn.Width = new GridLength(1, GridUnitType.Star);
+        };
+    }
+
+    private void ApplyWindowPlacement()
+    {
+        var placement = AppConfigService.LoadWindowPlacement();
+        if (placement == null)
+            return;
+
+        Width = Math.Max(MinWidth, placement.Width);
+        Height = Math.Max(MinHeight, placement.Height);
+        Left = placement.Left;
+        Top = placement.Top;
+        WindowStartupLocation = WindowStartupLocation.Manual;
+
+        if (placement.Maximized)
+            WindowState = WindowState.Maximized;
+    }
+
+    private void SaveWindowPlacement()
+    {
+        var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
+        var maximized = WindowState == WindowState.Maximized;
+        AppConfigService.SaveWindowPlacement(new AppWindowPlacement(
+            bounds.Left,
+            bounds.Top,
+            bounds.Width,
+            bounds.Height,
+            maximized));
     }
 
     private static bool IsSystemDarkMode()
@@ -454,16 +507,21 @@ public partial class MainWindow : Window
         if (extension == null)
             return;
 
-        SearchBox.Text = extension;
-        SearchNameBox.IsChecked = false;
-        SearchCategoryBox.IsChecked = true;
-        SearchRegistryBox.IsChecked = false;
-        SearchValueBox.IsChecked = false;
-        SearchComBox.IsChecked = false;
+        var query = extension.TrimStart('.');
+        _loading = true;
         UseRegexBox.IsChecked = false;
+        SearchNameBox.IsChecked = true;
+        SearchCategoryBox.IsChecked = true;
+        SearchRegistryBox.IsChecked = true;
+        SearchValueBox.IsChecked = true;
+        SearchComBox.IsChecked = true;
+        SearchBox.Text = query;
+        _loading = false;
+
+        RefreshCategories("按扩展名");
         ApplyFilters();
         SelectFirstItem();
-        StatusText.Text = $"已按后缀名 {extension} 过滤。";
+        StatusText.Text = $"已按后缀名 {query} 过滤。";
         e.Handled = true;
     }
 
@@ -513,6 +571,29 @@ public partial class MainWindow : Window
         if (_loading) return;
         ApplyFilters();
         SelectFirstItem();
+    }
+
+    private void CurrentListToolbar_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        const double inlineThreshold = 430;
+        var stackSearch = e.NewSize.Width < inlineThreshold;
+
+        Grid.SetRow(CurrentListSearchPanel, stackSearch ? 1 : 0);
+        Grid.SetColumn(CurrentListSearchPanel, stackSearch ? 0 : 1);
+        Grid.SetColumnSpan(CurrentListSearchPanel, stackSearch ? 2 : 1);
+        CurrentListSearchPanel.Margin = stackSearch ? new Thickness(0, 8, 0, 0) : new Thickness(14, 0, 0, 0);
+        CurrentListSearchPanel.HorizontalAlignment = stackSearch ? HorizontalAlignment.Left : HorizontalAlignment.Stretch;
+    }
+
+    private void ContentSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+    {
+        var total = ListPaneColumn.ActualWidth + DetailPaneColumn.ActualWidth;
+        if (total <= 0)
+            return;
+
+        ListPaneColumn.Width = new GridLength(ListPaneColumn.ActualWidth);
+        DetailPaneColumn.Width = new GridLength(1, GridUnitType.Star);
+        AppConfigService.SaveContentSplit(ListPaneColumn.ActualWidth / total);
     }
 
     private void ItemsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -775,22 +856,123 @@ public partial class MainWindow : Window
         StatusText.Text = LocalizationService.T("status_copy");
     }
 
-    private void PrintAllButton_Click(object sender, RoutedEventArgs e)
+    private void ExportButton_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            var text = ContextMenuRegistryScanner.FormatAll(_items);
-            var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            var path = Path.Combine(desktop, "RightMgr-print-all.txt");
-            File.WriteAllText(path, text);
-            Clipboard.SetText(text);
-            StatusText.Text = $"已打印全部 {_items.Count} 项到 {path}，并复制到剪贴板。";
-            MessageBox.Show(this, $"已输出：\n{path}", LocalizationService.T("dialog_notice"), MessageBoxButton.OK, MessageBoxImage.Information);
+            var scope = ShowExportScopeDialog();
+            if (scope == null)
+                return;
+
+            var dialog = new SaveFileDialog
+            {
+                Title = LocalizationService.T("dialog_export_title"),
+                Filter = LocalizationService.T("dialog_export_filter"),
+                FileName = BuildExportFileName(scope.Label),
+                AddExtension = true,
+                DefaultExt = ".txt",
+                OverwritePrompt = true
+            };
+
+            if (dialog.ShowDialog(this) != true)
+                return;
+
+            File.WriteAllText(dialog.FileName, ContextMenuRegistryScanner.FormatAll(scope.Items));
+            StatusText.Text = LocalizationService.Format("status_exported", scope.Items.Count, dialog.FileName);
         }
         catch (Exception ex)
         {
             MessageBox.Show(this, ex.Message, LocalizationService.T("dialog_notice"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
+    }
+
+    private ExportScope? ShowExportScopeDialog()
+    {
+        var scopes = BuildExportScopes();
+        var dialog = new Window
+        {
+            Title = LocalizationService.T("dialog_export_title"),
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            ResizeMode = ResizeMode.NoResize,
+            SizeToContent = SizeToContent.WidthAndHeight,
+            Background = Resources["Surface"] as Brush,
+            FontFamily = FontFamily,
+            Padding = new Thickness(18)
+        };
+
+        var root = new StackPanel { MinWidth = 320 };
+        root.Children.Add(new TextBlock
+        {
+            Text = LocalizationService.T("dialog_export_scope"),
+            Foreground = Resources["Subtle"] as Brush,
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 0, 0, 6)
+        });
+
+        var comboBox = new ComboBox
+        {
+            ItemsSource = scopes,
+            SelectedIndex = 0,
+            DisplayMemberPath = nameof(ExportScope.Label),
+            MinHeight = 32,
+            Margin = new Thickness(0, 0, 0, 16)
+        };
+        root.Children.Add(comboBox);
+
+        var buttons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
+        var cancelButton = new Button
+        {
+            Content = LocalizationService.T("dialog_export_cancel"),
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+        var exportButton = new Button
+        {
+            Content = LocalizationService.T("dialog_export_save"),
+            Style = (Style)Resources["PrimaryButton"]
+        };
+        buttons.Children.Add(cancelButton);
+        buttons.Children.Add(exportButton);
+        root.Children.Add(buttons);
+
+        ExportScope? selected = null;
+        cancelButton.Click += (_, _) => dialog.Close();
+        exportButton.Click += (_, _) =>
+        {
+            selected = comboBox.SelectedItem as ExportScope;
+            dialog.Close();
+        };
+
+        dialog.Content = root;
+        dialog.ShowDialog();
+        return selected;
+    }
+
+    private List<ExportScope> BuildExportScopes()
+    {
+        var scopes = new List<ExportScope>
+        {
+            new(LocalizationService.T("dialog_export_all"), _items),
+            new(LocalizationService.T("dialog_export_current"), _filtered)
+        };
+
+        scopes.AddRange(_items
+            .GroupBy(x => x.BigCategory, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x.Key)
+            .Select(g => new ExportScope(LocalizationService.Format("dialog_export_category", g.Key), g.ToList())));
+
+        return scopes;
+    }
+
+    private static string BuildExportFileName(string scopeLabel)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var safeScope = new string(scopeLabel.Select(ch => invalidChars.Contains(ch) ? '-' : ch).ToArray());
+        return $"RightMgr-{safeScope}.txt";
     }
 
     private void SourceCodeLink_RequestNavigate(object sender, RequestNavigateEventArgs e)
