@@ -1,0 +1,62 @@
+namespace RightMgr.Services;
+
+public sealed record AppThemePalette(
+    string Window,
+    string Surface,
+    string SurfaceAlt,
+    string SurfaceRaised,
+    string Sidebar,
+    string SidebarText,
+    string SidebarTextMuted,
+    string SidebarSelection,
+    string SidebarHover,
+    string Text,
+    string TextMuted,
+    string TextSubtle,
+    string Border,
+    string Control,
+    string ControlHover,
+    string Accent,
+    string AccentText,
+    string Danger)
+{
+    public static AppThemePalette Light { get; } = new(
+        Window: "#F3F4F6",
+        Surface: "#FFFFFF",
+        SurfaceAlt: "#F9FAFB",
+        SurfaceRaised: "#FFFFFF",
+        Sidebar: "#111827",
+        SidebarText: "#F3F4F6",
+        SidebarTextMuted: "#A7B0C0",
+        SidebarSelection: "#243044",
+        SidebarHover: "#1B2433",
+        Text: "#111827",
+        TextMuted: "#6B7280",
+        TextSubtle: "#4B5563",
+        Border: "#D1D5DB",
+        Control: "#FFFFFF",
+        ControlHover: "#F3F4F6",
+        Accent: "#1D4ED8",
+        AccentText: "#FFFFFF",
+        Danger: "#B91C1C");
+
+    public static AppThemePalette Dark { get; } = new(
+        Window: "#0B1020",
+        Surface: "#101827",
+        SurfaceAlt: "#0D1422",
+        SurfaceRaised: "#172033",
+        Sidebar: "#080E1A",
+        SidebarText: "#D4DCE8",
+        SidebarTextMuted: "#98A4B5",
+        SidebarSelection: "#182339",
+        SidebarHover: "#101A2C",
+        Text: "#D7DEE9",
+        TextMuted: "#A5AFBE",
+        TextSubtle: "#8D99AA",
+        Border: "#2A3342",
+        Control: "#111C2D",
+        ControlHover: "#1B2638",
+        Accent: "#60A5FA",
+        AccentText: "#071120",
+        Danger: "#F87171");
+}

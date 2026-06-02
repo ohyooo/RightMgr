@@ -37,13 +37,19 @@ public static class ShellIconService
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool DestroyIcon(nint hIcon);
 
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    private static extern uint ExtractIconEx(string szFileName, int nIconIndex, nint[]? phiconLarge, nint[]? phiconSmall, uint nIcons);
+
     public static string? GetPngIconPath(string? resourceOrFilePath)
     {
         var filePath = ShellResourceResolver.ExtractFilePathFromResource(resourceOrFilePath);
         if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
             return null;
 
-        return GetPngIconPathFromShell(filePath, 0, SHGFI_ICON | SHGFI_SMALLICON);
+        var iconIndex = ShellResourceResolver.ExtractIconIndex(resourceOrFilePath);
+        return iconIndex == 0
+            ? GetPngIconPathFromShell(filePath, 0, SHGFI_ICON | SHGFI_SMALLICON)
+            : GetPngIconPathFromExtractIcon(filePath, iconIndex);
     }
 
     public static string? GetPngIconPathForTarget(string appliesTo, string? resourceOrFilePath)
@@ -69,6 +75,48 @@ public static class ShellIconService
         var cacheKey = $"{shellPath}|{attributes}|{flags}";
         var cached = PngPathCache.GetOrAdd(cacheKey, _ => GetPngIconPathFromShellUncached(shellPath, attributes, flags, cacheKey) ?? NullCacheValue);
         return cached == NullCacheValue ? null : cached;
+    }
+
+    private static string? GetPngIconPathFromExtractIcon(string filePath, int iconIndex)
+    {
+        var cacheKey = $"{filePath}|icon|{iconIndex}";
+        var cached = PngPathCache.GetOrAdd(cacheKey, _ => GetPngIconPathFromExtractIconUncached(filePath, iconIndex, cacheKey) ?? NullCacheValue);
+        return cached == NullCacheValue ? null : cached;
+    }
+
+    private static string? GetPngIconPathFromExtractIconUncached(string filePath, int iconIndex, string cacheKey)
+    {
+        nint iconHandle = nint.Zero;
+        try
+        {
+            var cacheDir = Path.Combine(Path.GetTempPath(), "RightMgr", "icons");
+            Directory.CreateDirectory(cacheDir);
+
+            var cacheName = Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(System.Text.Encoding.UTF8.GetBytes(cacheKey))) + ".png";
+            var output = Path.Combine(cacheDir, cacheName);
+            if (File.Exists(output))
+                return output;
+
+            var smallIcons = new nint[1];
+            if (ExtractIconEx(filePath, iconIndex, null, smallIcons, 1) == 0 || smallIcons[0] == nint.Zero)
+                return null;
+
+            iconHandle = smallIcons[0];
+            using var icon = Icon.FromHandle(iconHandle);
+            using var bitmap = icon.ToBitmap();
+            bitmap.Save(output, ImageFormat.Png);
+
+            return output;
+        }
+        catch
+        {
+            return null;
+        }
+        finally
+        {
+            if (iconHandle != nint.Zero)
+                DestroyIcon(iconHandle);
+        }
     }
 
     private static string? GetPngIconPathFromShellUncached(string shellPath, uint attributes, uint flags, string cacheKey)

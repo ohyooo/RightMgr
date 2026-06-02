@@ -18,7 +18,40 @@ public static class Program
 
         var app = new App();
         app.InitializeComponent();
-        app.Run(new MainWindow());
+        app.Run(new MainWindow(ParseThemeMode(args)));
+    }
+
+    private static AppThemeMode ParseThemeMode(string[] args)
+    {
+        for (var i = 0; i < args.Length; i++)
+        {
+            var arg = args[i];
+            if (arg.Equals("--light", StringComparison.OrdinalIgnoreCase))
+                return AppThemeMode.Light;
+            if (arg.Equals("--dark", StringComparison.OrdinalIgnoreCase))
+                return AppThemeMode.Dark;
+            if (arg.Equals("--system", StringComparison.OrdinalIgnoreCase))
+                return AppThemeMode.System;
+
+            string? value = null;
+            if (arg.StartsWith("--theme=", StringComparison.OrdinalIgnoreCase))
+                value = arg["--theme=".Length..];
+            else if (arg.Equals("--theme", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
+                value = args[++i];
+
+            if (value == null)
+                continue;
+
+            return value.ToLowerInvariant() switch
+            {
+                "light" or "white" => AppThemeMode.Light,
+                "dark" => AppThemeMode.Dark,
+                "system" or "auto" => AppThemeMode.System,
+                _ => AppThemeMode.System
+            };
+        }
+
+        return AppThemeMode.System;
     }
 
     private static void PrintAll()

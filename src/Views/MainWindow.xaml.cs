@@ -5,10 +5,10 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using RightMgr.Models;
 using RightMgr.Services;
-using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using Registry = Microsoft.Win32.Registry;
 
 namespace RightMgr.Views;
@@ -17,6 +17,7 @@ public partial class MainWindow : Window
 {
     private const int WmSettingChange = 0x001A;
     private const int WmThemeChanged = 0x031A;
+    private const int DwmwaUseImmersiveDarkMode = 20;
 
     private sealed record CategoryItem(string Name, int Count)
     {
@@ -26,14 +27,18 @@ public partial class MainWindow : Window
     private List<ContextMenuItemInfo> _items = new();
     private List<ContextMenuItemInfo> _filtered = new();
     private ContextMenuItemInfo? _selected;
+    private readonly AppThemeMode _themeMode;
+    private AppThemePalette _palette = AppThemePalette.Light;
     private bool _loading = true;
     private bool _refreshingCategories;
 
-    public MainWindow()
+    public MainWindow(AppThemeMode themeMode = AppThemeMode.System)
     {
+        _themeMode = themeMode;
         InitializeComponent();
-        ApplySystemTheme();
+        ApplyTheme();
         LoadData();
+        Loaded += (_, _) => ApplyTheme();
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -43,28 +48,32 @@ public partial class MainWindow : Window
             source.AddHook(WndProc);
     }
 
+    protected override void OnStateChanged(EventArgs e)
+    {
+        base.OnStateChanged(e);
+        UpdateMaximizeButtonIcon();
+    }
+
     private nint WndProc(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
-        if (msg == WmSettingChange || msg == WmThemeChanged)
-            ApplySystemTheme();
+        if (_themeMode == AppThemeMode.System && (msg == WmSettingChange || msg == WmThemeChanged))
+            ApplyTheme();
 
         return nint.Zero;
     }
 
-    private void ApplySystemTheme()
+    private void ApplyTheme()
     {
-        var dark = IsSystemDarkMode();
-        SetBrush("Ink", dark ? "#F5F7FA" : "#111827");
-        SetBrush("Muted", dark ? "#A6ADBB" : "#6B7280");
-        SetBrush("Line", dark ? "#2A3342" : "#D1D5DB");
-        SetBrush("Panel", dark ? "#111827" : "#FFFFFF");
-        SetBrush("Side", dark ? "#0B1220" : "#111827");
-        SetBrush("SideMuted", dark ? "#8E98A8" : "#9CA3AF");
-        SetBrush("Accent", dark ? "#60A5FA" : "#1D4ED8");
-        SetBrush("Danger", dark ? "#F87171" : "#B91C1C");
-
-        Background = BrushFromHex(dark ? "#0F172A" : "#F3F4F6");
-        UpdateLocalControlColors(this, dark);
+        var dark = _themeMode switch
+        {
+            AppThemeMode.Light => false,
+            AppThemeMode.Dark => true,
+            _ => IsSystemDarkMode()
+        };
+        _palette = dark ? AppThemePalette.Dark : AppThemePalette.Light;
+        ApplyPalette(_palette);
+        Background = BrushFromHex(_palette.Window);
+        ApplyWindowChromeTheme(dark);
     }
 
     private static bool IsSystemDarkMode()
@@ -80,6 +89,29 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ApplyPalette(AppThemePalette palette)
+    {
+        SetBrush("WindowBg", palette.Window);
+        SetBrush("Surface", palette.Surface);
+        SetBrush("SurfaceAlt", palette.SurfaceAlt);
+        SetBrush("SurfaceRaised", palette.SurfaceRaised);
+        SetBrush("ControlBg", palette.Control);
+        SetBrush("ControlHover", palette.ControlHover);
+        SetBrush("Ink", palette.Text);
+        SetBrush("Muted", palette.TextMuted);
+        SetBrush("Subtle", palette.TextSubtle);
+        SetBrush("Line", palette.Border);
+        SetBrush("Panel", palette.Surface);
+        SetBrush("Side", palette.Sidebar);
+        SetBrush("SideMuted", palette.SidebarText);
+        SetBrush("SideSubtle", palette.SidebarTextMuted);
+        SetBrush("SideSelection", palette.SidebarSelection);
+        SetBrush("SideHover", palette.SidebarHover);
+        SetBrush("Accent", palette.Accent);
+        SetBrush("AccentText", palette.AccentText);
+        SetBrush("Danger", palette.Danger);
+    }
+
     private void SetBrush(string key, string color)
     {
         if (Resources[key] is SolidColorBrush brush && !brush.IsFrozen)
@@ -93,79 +125,57 @@ public partial class MainWindow : Window
 
     private static SolidColorBrush BrushFromHex(string color) => new((Color)ColorConverter.ConvertFromString(color));
 
-    private static void UpdateLocalControlColors(DependencyObject root, bool dark)
+    private void ApplyWindowChromeTheme(bool dark)
     {
-        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
-        {
-            var child = VisualTreeHelper.GetChild(root, i);
-            switch (child)
-            {
-                case Border border:
-                    UpdateBorderColors(border, dark);
-                    break;
-                case TextBlock textBlock:
-                    UpdateTextBlockColors(textBlock, dark);
-                    break;
-                case TextBox textBox:
-                    UpdateTextBoxColors(textBox, dark);
-                    break;
-                case CheckBox checkBox:
-                    checkBox.Foreground = BrushFromHex(dark ? "#F5F7FA" : "#111827");
-                    break;
-                case Button button:
-                    UpdateButtonColors(button, dark);
-                    break;
-            }
+        if (PresentationSource.FromVisual(this) is not HwndSource source)
+            return;
 
-            UpdateLocalControlColors(child, dark);
-        }
+        var enabled = dark ? 1 : 0;
+        _ = DwmSetWindowAttribute(source.Handle, DwmwaUseImmersiveDarkMode, ref enabled, sizeof(int));
     }
 
-    private static void UpdateBorderColors(Border border, bool dark)
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(nint hwnd, int attribute, ref int value, int size);
+
+    private void MinimizeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (border.Background is SolidColorBrush bg)
+        WindowState = WindowState.Minimized;
+    }
+
+    private void DragArea_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
         {
-            border.Background = bg.Color switch
-            {
-                var c when IsColor(c, "#FFFFFF") => BrushFromHex(dark ? "#111827" : "#FFFFFF"),
-                var c when IsColor(c, "#F9FAFB") => BrushFromHex(dark ? "#0F172A" : "#F9FAFB"),
-                var c when IsColor(c, "#F3F4F6") => BrushFromHex(dark ? "#172033" : "#F3F4F6"),
-                _ => border.Background
-            };
+            ToggleWindowState();
+            return;
         }
 
-        if (border.BorderBrush is SolidColorBrush)
-            border.BorderBrush = BrushFromHex(dark ? "#2A3342" : "#D1D5DB");
+        DragMove();
     }
 
-    private static void UpdateTextBoxColors(TextBox textBox, bool dark)
+    private void MaximizeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (textBox.Background is SolidColorBrush bg && bg.Color.A > 0)
-            textBox.Background = BrushFromHex(dark ? "#111827" : "#FFFFFF");
-
-        if (textBox.BorderBrush is SolidColorBrush)
-            textBox.BorderBrush = BrushFromHex(dark ? "#374151" : "#D1D5DB");
+        ToggleWindowState();
     }
 
-    private static void UpdateTextBlockColors(TextBlock textBlock, bool dark)
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
-        if (textBlock.Foreground is SolidColorBrush fg)
-        {
-            if (IsColor(fg.Color, "#111827") || IsColor(fg.Color, "#4B5563") || IsColor(fg.Color, "#6B7280"))
-                textBlock.Foreground = BrushFromHex(dark ? "#F5F7FA" : "#111827");
-        }
+        Close();
     }
 
-    private static void UpdateButtonColors(Button button, bool dark)
+    private void ToggleWindowState()
     {
-        if (button.Background is SolidColorBrush bg && IsColor(bg.Color, "#FFFFFF"))
-            button.Background = BrushFromHex(dark ? "#1F2937" : "#FFFFFF");
-
-        if (button.BorderBrush is SolidColorBrush)
-            button.BorderBrush = BrushFromHex(dark ? "#374151" : "#D1D5DB");
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        UpdateMaximizeButtonIcon();
     }
 
-    private static bool IsColor(Color color, string hex) => color == (Color)ColorConverter.ConvertFromString(hex);
+    private void UpdateMaximizeButtonIcon()
+    {
+        if (MaximizeButton == null)
+            return;
+
+        MaximizeButton.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+    }
 
     private void LoadData()
     {
@@ -178,6 +188,7 @@ public partial class MainWindow : Window
         RefreshCategories("全部");
         ApplyFilters();
         SelectFirstItem();
+        Dispatcher.BeginInvoke(ApplyTheme, System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
     private void ApplyFilters()
@@ -202,6 +213,7 @@ public partial class MainWindow : Window
 
         _filtered = items.ToList();
         ItemsList.ItemsSource = _filtered;
+        ListTitleText.Text = category;
         CountText.Text = $"{_filtered.Count} 项";
         StatusText.Text = BuildStatusText();
     }
@@ -444,7 +456,7 @@ public partial class MainWindow : Window
         DllPathBox.Text = item.InProcServer32 ?? "";
         IconResourceBox.Text = item.IconResource ?? "";
         OpenClsidButton.Visibility = string.IsNullOrWhiteSpace(item.Clsid) ? Visibility.Collapsed : Visibility.Visible;
-        OpenDllPathButton.Visibility = HasOpenableFilePath(item.InProcServer32) ? Visibility.Visible : Visibility.Collapsed;
+        OpenDllPathButton.Visibility = string.IsNullOrWhiteSpace(item.InProcServer32) ? Visibility.Collapsed : Visibility.Visible;
         OpenIconPathButton.Visibility = HasOpenableFilePath(item.IconResource) ? Visibility.Visible : Visibility.Collapsed;
         EnableSwitch.IsChecked = item.IsEnabled;
         EnableSwitch.IsEnabled = true;
@@ -568,18 +580,12 @@ public partial class MainWindow : Window
         if (_selected == null)
             return;
 
-        var dialog = new OpenFileDialog
-        {
-            Title = LocalizationService.T("dialog_icon_title"),
-            Filter = LocalizationService.T("dialog_icon_filter"),
-            CheckFileExists = true
-        };
-
-        if (dialog.ShowDialog(this) != true)
+        var iconResource = NativeIconDialog.Show(this, IconResourceBox.Text);
+        if (iconResource == null)
             return;
 
-        IconResourceBox.Text = dialog.FileName;
-        ShowIcon(ShellIconService.GetPngIconPath(dialog.FileName));
+        IconResourceBox.Text = iconResource;
+        ShowIcon(ShellIconService.GetPngIconPath(iconResource));
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)

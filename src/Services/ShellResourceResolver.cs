@@ -131,6 +131,16 @@ public static class ShellResourceResolver
         return File.Exists(s) ? s : null;
     }
 
+    public static int ExtractIconIndex(string? resource)
+    {
+        if (string.IsNullOrWhiteSpace(resource))
+            return 0;
+
+        var s = resource.Trim().Trim('"');
+        var comma = s.LastIndexOf(',');
+        return comma > 0 && int.TryParse(s[(comma + 1)..].Trim(), out var index) ? index : 0;
+    }
+
     public static string? ExtractExecutablePathFromCommand(string? command)
     {
         if (string.IsNullOrWhiteSpace(command))

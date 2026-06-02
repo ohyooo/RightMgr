@@ -1,42 +1,84 @@
 <Window x:Class="RightMgr.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:services="clr-namespace:RightMgr.Services"
         Title="{services:Loc app_title}"
         Width="1360" Height="840" MinWidth="1100" MinHeight="700"
-        Background="#F3F4F6"
+        Background="{DynamicResource WindowBg}"
         FontFamily="Segoe UI, Microsoft YaHei UI"
-        TextOptions.TextFormattingMode="Display">
+        TextOptions.TextFormattingMode="Display"
+        WindowStyle="None"
+        ResizeMode="CanResize">
+    <WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" />
+    </WindowChrome.WindowChrome>
     <Window.Resources>
+        <SolidColorBrush x:Key="WindowBg" Color="#F3F4F6" />
+        <SolidColorBrush x:Key="Surface" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="SurfaceAlt" Color="#F9FAFB" />
+        <SolidColorBrush x:Key="SurfaceRaised" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ControlBg" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ControlHover" Color="#F3F4F6" />
         <SolidColorBrush x:Key="Ink" Color="#111827" />
         <SolidColorBrush x:Key="Muted" Color="#6B7280" />
+        <SolidColorBrush x:Key="Subtle" Color="#4B5563" />
         <SolidColorBrush x:Key="Line" Color="#D1D5DB" />
         <SolidColorBrush x:Key="Panel" Color="#FFFFFF" />
         <SolidColorBrush x:Key="Side" Color="#111827" />
-        <SolidColorBrush x:Key="SideMuted" Color="#9CA3AF" />
+        <SolidColorBrush x:Key="SideMuted" Color="#E5E7EB" />
+        <SolidColorBrush x:Key="SideSubtle" Color="#A7B0C0" />
+        <SolidColorBrush x:Key="SideSelection" Color="#243044" />
+        <SolidColorBrush x:Key="SideHover" Color="#1B2433" />
         <SolidColorBrush x:Key="Accent" Color="#1D4ED8" />
+        <SolidColorBrush x:Key="AccentText" Color="#FFFFFF" />
         <SolidColorBrush x:Key="Danger" Color="#B91C1C" />
 
+        <sys:Double x:Key="FontSizeLabel">12</sys:Double>
+        <sys:Double x:Key="FontSizeBody">13</sys:Double>
+        <sys:Double x:Key="FontSizeTitle">20</sys:Double>
+        <sys:Double x:Key="FontSizeHero">28</sys:Double>
+        <sys:Double x:Key="ControlHeight">32</sys:Double>
+        <Thickness x:Key="ControlPadding">8,5</Thickness>
+        <Thickness x:Key="ButtonPadding">12,5</Thickness>
+        <Thickness x:Key="FieldLabelMargin">0,12,0,4</Thickness>
+        <Thickness x:Key="InlineIconMargin">0,0,6,0</Thickness>
+
         <Style TargetType="Button">
-            <Setter Property="MinHeight" Value="32" />
-            <Setter Property="Padding" Value="12,5" />
-            <Setter Property="BorderBrush" Value="#D1D5DB" />
-            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="MinHeight" Value="{StaticResource ControlHeight}" />
+            <Setter Property="Padding" Value="{StaticResource ButtonPadding}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+            <Setter Property="Background" Value="{StaticResource ControlBg}" />
             <Setter Property="Foreground" Value="{StaticResource Ink}" />
             <Setter Property="Cursor" Value="Hand" />
         </Style>
 
+        <Style x:Key="WindowButton" TargetType="Button">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="9" />
+            <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+        </Style>
+
         <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="#1D4ED8" />
-            <Setter Property="BorderBrush" Value="#1D4ED8" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="{StaticResource Accent}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+            <Setter Property="Foreground" Value="{StaticResource AccentText}" />
         </Style>
 
         <Style TargetType="TextBox">
-            <Setter Property="MinHeight" Value="32" />
-            <Setter Property="Padding" Value="8,5" />
-            <Setter Property="BorderBrush" Value="#D1D5DB" />
-            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="MinHeight" Value="{StaticResource ControlHeight}" />
+            <Setter Property="Padding" Value="{StaticResource ControlPadding}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+            <Setter Property="Background" Value="{StaticResource ControlBg}" />
             <Setter Property="Foreground" Value="{StaticResource Ink}" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
@@ -52,35 +94,91 @@
         </Style>
 
         <Style x:Key="SideTitleText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#F9FAFB" />
+            <Setter Property="Foreground" Value="{StaticResource SideMuted}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeLabel}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="#4B5563" />
-            <Setter Property="Margin" Value="0,12,0,4" />
+            <Setter Property="Foreground" Value="{StaticResource Subtle}" />
+            <Setter Property="Margin" Value="{StaticResource FieldLabelMargin}" />
         </Style>
 
         <Style x:Key="FieldBox" TargetType="TextBox">
             <Setter Property="IsReadOnly" Value="True" />
-            <Setter Property="Background" Value="#F9FAFB" />
-            <Setter Property="BorderBrush" Value="#E5E7EB" />
+            <Setter Property="Background" Value="{StaticResource SurfaceAlt}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
             <Setter Property="VerticalContentAlignment" Value="Top" />
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="Box" Width="16" Height="16" CornerRadius="3" BorderThickness="1"
+                                    BorderBrush="{StaticResource Line}" Background="{StaticResource ControlBg}" VerticalAlignment="Center">
+                                <TextBlock x:Name="CheckMark" Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                           Foreground="{StaticResource AccentText}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="Collapsed" />
+                            </Border>
+                            <ContentPresenter Grid.Column="1" Margin="7,0,0,0" RecognizesAccessKey="True"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="{StaticResource Accent}" />
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Accent}" />
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style TargetType="ListBox">
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden" />
         </Style>
 
         <Style x:Key="CategoryItemStyle" TargetType="ListBoxItem">
             <Setter Property="Padding" Value="10,8" />
             <Setter Property="Margin" Value="0,1" />
-            <Setter Property="Foreground" Value="#E5E7EB" />
+            <Setter Property="Foreground" Value="{StaticResource SideMuted}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Row" Background="Transparent" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Row" Property="Background" Value="{StaticResource SideHover}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Row" Property="Background" Value="{StaticResource SideSelection}" />
+                                <Setter Property="Foreground" Value="{StaticResource SideMuted}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="EntryItemStyle" TargetType="ListBoxItem">
@@ -90,7 +188,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid>
+    <Grid Background="{StaticResource WindowBg}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="260" />
             <ColumnDefinition Width="*" />
@@ -100,24 +198,24 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Grid.RowSpan="2" Background="{StaticResource Side}" Padding="18">
+        <Border Grid.RowSpan="2" Background="{StaticResource Side}" Padding="18,24,18,18">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Top">
-                    <TextBlock Text="{services:Loc app_title}" FontSize="28" FontWeight="SemiBold" Foreground="White" />
-                    <TextBox x:Name="HeaderSummaryText" Text="{services:Loc app_subtitle_scanning}" Foreground="{StaticResource SideMuted}" Style="{StaticResource SelectableTextBox}" Margin="0,6,0,18" />
+                    <TextBlock Text="{services:Loc app_title}" FontSize="{StaticResource FontSizeHero}" FontWeight="SemiBold" Foreground="{StaticResource SideMuted}" MouseLeftButtonDown="DragArea_MouseLeftButtonDown" />
+                    <TextBox x:Name="HeaderSummaryText" Text="{services:Loc app_subtitle_scanning}" Foreground="{StaticResource SideSubtle}" Style="{StaticResource SelectableTextBox}" Margin="0,6,0,18" />
 
-                    <TextBlock Text="{services:Loc search_placeholder}" Foreground="{StaticResource SideMuted}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <TextBlock Text="{services:Loc search_placeholder}" Foreground="{StaticResource SideSubtle}" FontSize="{StaticResource FontSizeLabel}" FontWeight="SemiBold" Margin="0,0,0,6" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBox x:Name="SearchBox" TextChanged="SearchBox_TextChanged" />
-                        <Button x:Name="FilterButton" Grid.Column="1" Click="FilterButton_Click" Margin="8,0,0,0" Padding="10,5" ToolTip="{services:Loc search_filter}">
+                        <Button x:Name="FilterButton" Grid.Column="1" Click="FilterButton_Click" Margin="8,0,0,0" Padding="{StaticResource ControlPadding}" ToolTip="{services:Loc search_filter}">
                             <TextBlock Text="&#xE71C;" FontFamily="Segoe MDL2 Assets" />
                         </Button>
                         <Popup x:Name="FilterPopup" Grid.ColumnSpan="2" PlacementTarget="{Binding ElementName=FilterButton}" Placement="Bottom" StaysOpen="False">
-                            <Border Background="White" BorderBrush="#D1D5DB" BorderThickness="1" Padding="14" Width="250">
+                            <Border Background="{StaticResource SurfaceRaised}" BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="14" Width="250">
                                 <StackPanel>
                                     <TextBlock Text="{services:Loc search_filter}" FontWeight="SemiBold" Margin="0,0,0,10" />
                                     <CheckBox x:Name="UseRegexBox" Content="{services:Loc regex_enabled}" Checked="SearchOptions_Changed" Unchecked="SearchOptions_Changed" Margin="0,0,0,10" />
@@ -134,13 +232,13 @@
                     <StackPanel Orientation="Horizontal" Margin="0,14,0,16">
                         <Button Click="RefreshButton_Click" Margin="0,0,8,0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Margin="0,0,6,0" />
+                                <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Margin="{StaticResource InlineIconMargin}" />
                                 <TextBlock Text="{services:Loc action_refresh}" />
                             </StackPanel>
                         </Button>
                         <Button Click="PrintAllButton_Click">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xE749;" FontFamily="Segoe MDL2 Assets" Margin="0,0,6,0" />
+                                <TextBlock Text="&#xE749;" FontFamily="Segoe MDL2 Assets" Margin="{StaticResource InlineIconMargin}" />
                                 <TextBlock Text="{services:Loc action_print_all}" />
                             </StackPanel>
                         </Button>
@@ -152,20 +250,31 @@
                 <ListBox x:Name="CategoryList" SelectionChanged="CategoryList_SelectionChanged" ItemContainerStyle="{StaticResource CategoryItemStyle}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding}" Foreground="{DynamicResource SideMuted}" TextTrimming="CharacterEllipsis" />
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
             </DockPanel>
         </Border>
 
-        <Grid Grid.Column="1">
+        <Grid Grid.Column="1" Grid.Row="0">
             <Grid.RowDefinitions>
+                <RowDefinition Height="18" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Border Background="White" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="18,14">
+            <Border Grid.Row="0" Background="{StaticResource Surface}" MouseLeftButtonDown="DragArea_MouseLeftButtonDown">
+                <DockPanel LastChildFill="False">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button Style="{StaticResource WindowButton}" Content="&#xE921;" Click="MinimizeButton_Click" ToolTip="Minimize" />
+                        <Button x:Name="MaximizeButton" Style="{StaticResource WindowButton}" Content="&#xE922;" Click="MaximizeButton_Click" ToolTip="Maximize" />
+                        <Button Style="{StaticResource WindowButton}" Content="&#xE8BB;" Click="CloseButton_Click" ToolTip="Close" Foreground="{StaticResource Danger}" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Row="1" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="18,6,18,10">
                 <DockPanel LastChildFill="True">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                         <CheckBox x:Name="EnableSwitch" Content="{services:Loc enable}" Checked="EnableSwitch_Changed" Unchecked="EnableSwitch_Changed" Margin="0,0,14,0" VerticalAlignment="Center" VerticalContentAlignment="Center" />
@@ -173,26 +282,26 @@
                         <Button x:Name="DeleteButton" Content="{services:Loc action_delete}" Click="DeleteButton_Click" Foreground="{StaticResource Danger}" Margin="0,0,8,0" />
                         <Button Content="{services:Loc action_copy}" Click="CopyAllButton_Click" />
                     </StackPanel>
-                    <StackPanel>
-                        <TextBlock Text="{services:Loc list_title}" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource Ink}" />
-                        <TextBox x:Name="CountText" Foreground="{StaticResource Muted}" Style="{StaticResource SelectableTextBox}" Margin="0,4,0,0" />
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock x:Name="ListTitleText" Text="{services:Loc list_title}" FontSize="{StaticResource FontSizeTitle}" FontWeight="SemiBold" Foreground="{StaticResource Ink}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock x:Name="CountText" Foreground="{StaticResource Muted}" FontSize="{StaticResource FontSizeBody}" Margin="10,1,0,0" VerticalAlignment="Center" />
                     </StackPanel>
                 </DockPanel>
             </Border>
 
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="46*" />
                     <ColumnDefinition Width="54*" />
                 </Grid.ColumnDefinitions>
 
-                <Border Background="#F9FAFB" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
+                <Border Background="{StaticResource SurfaceAlt}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <Border Padding="14,10" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Background="#F3F4F6">
+                        <Border Padding="14,10" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Background="{StaticResource WindowBg}">
                             <DockPanel LastChildFill="True" MinHeight="32">
                                 <Grid DockPanel.Dock="Right" Width="230" Margin="14,0,0,0" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
@@ -200,11 +309,11 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <TextBox x:Name="CurrentListSearchBox" TextChanged="CurrentListSearchBox_TextChanged" ToolTip="{services:Loc list_search_placeholder}" />
-                                    <Button x:Name="CurrentListFilterButton" Grid.Column="1" Click="CurrentListFilterButton_Click" Margin="8,0,0,0" Padding="10,5" ToolTip="{services:Loc list_search_filter}">
+                                    <Button x:Name="CurrentListFilterButton" Grid.Column="1" Click="CurrentListFilterButton_Click" Margin="8,0,0,0" Padding="{StaticResource ControlPadding}" ToolTip="{services:Loc list_search_filter}">
                                         <TextBlock Text="&#xE71C;" FontFamily="Segoe MDL2 Assets" />
                                     </Button>
                                     <Popup x:Name="CurrentListFilterPopup" Grid.ColumnSpan="2" PlacementTarget="{Binding ElementName=CurrentListFilterButton}" Placement="Bottom" StaysOpen="False">
-                                        <Border Background="White" BorderBrush="#D1D5DB" BorderThickness="1" Padding="14" Width="250">
+                                        <Border Background="{StaticResource SurfaceRaised}" BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="14" Width="250">
                                             <StackPanel>
                                                 <TextBlock Text="{services:Loc list_search_filter}" FontWeight="SemiBold" Margin="0,0,0,10" />
                                                 <CheckBox x:Name="CurrentUseRegexBox" Content="{services:Loc regex_enabled}" Checked="CurrentSearchOptions_Changed" Unchecked="CurrentSearchOptions_Changed" Margin="0,0,0,10" />
@@ -220,13 +329,13 @@
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <CheckBox x:Name="ShellVerbFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" Margin="0,0,18,0" VerticalAlignment="Center" VerticalContentAlignment="Center">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="{StaticResource Accent}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="{StaticResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
                                             <TextBlock Text="{services:Loc filter_shell}" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </CheckBox>
                                     <CheckBox x:Name="ShellExFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" VerticalAlignment="Center" VerticalContentAlignment="Center">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" Foreground="#047857" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" Foreground="{StaticResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
                                             <TextBlock Text="{services:Loc filter_shellex}" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </CheckBox>
@@ -237,12 +346,12 @@
                         <ListBox x:Name="ItemsList" Grid.Row="1" SelectionChanged="ItemsList_SelectionChanged" ItemContainerStyle="{StaticResource EntryItemStyle}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Padding="14,11" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Background="White">
+                                    <Border Padding="14,11" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Background="{StaticResource Surface}">
                                         <DockPanel>
                                             <Image DockPanel.Dock="Left" Width="22" Height="22" Source="{Binding IconImageSource}" Margin="0,2,11,0" />
                                             <StackPanel>
                                                 <TextBlock Text="{Binding CompactTitle}" FontWeight="SemiBold" Foreground="{StaticResource Ink}" TextTrimming="CharacterEllipsis" TextDecorations="{Binding PendingDeleteTextDecorations}" />
-                                                <TextBlock Text="{Binding CompactSubtitle}" FontSize="12" Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                                <TextBlock Text="{Binding CompactSubtitle}" FontSize="{StaticResource FontSizeLabel}" Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>
@@ -252,7 +361,7 @@
                     </Grid>
                 </Border>
 
-                <Grid Grid.Column="1" Background="White">
+                <Grid Grid.Column="1" Background="{StaticResource Surface}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
@@ -261,13 +370,13 @@
                         <DockPanel LastChildFill="True">
                             <Image x:Name="HeaderIcon" DockPanel.Dock="Left" Width="44" Height="44" Margin="0,0,14,0" Visibility="Collapsed" />
                             <StackPanel>
-                                <TextBox x:Name="MenuNameText" Text="{services:Loc detail_empty_title}" FontSize="23" FontWeight="SemiBold" TextWrapping="Wrap" Style="{StaticResource SelectableTextBox}" />
+                                <TextBox x:Name="MenuNameText" Text="{services:Loc detail_empty_title}" FontSize="{StaticResource FontSizeTitle}" FontWeight="SemiBold" TextWrapping="Wrap" Style="{StaticResource SelectableTextBox}" />
                                 <TextBox x:Name="DescriptionText" Foreground="{StaticResource Muted}" TextWrapping="Wrap" Style="{StaticResource SelectableTextBox}" Margin="0,5,0,0" />
                             </StackPanel>
                         </DockPanel>
                     </Border>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="18,6,18,18">
                             <UniformGrid Columns="2">
                                 <StackPanel Margin="0,0,8,0">
@@ -298,7 +407,7 @@
                             </UniformGrid>
 
                             <TextBlock Text="{services:Loc field_value}" Style="{StaticResource FieldLabel}" />
-                            <TextBox x:Name="ValueBox" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="94" VerticalContentAlignment="Top" />
+                            <TextBox x:Name="ValueBox" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="48" VerticalContentAlignment="Top" />
 
                             <DockPanel Margin="0,12,0,4">
                                 <Button x:Name="OpenClsidButton" DockPanel.Dock="Right" Click="OpenClsidRegistryButton_Click" Margin="10,0,0,0" Content="{services:Loc action_open_clsid}" />
@@ -324,12 +433,12 @@
             </Grid>
         </Grid>
 
-        <Border Grid.Column="1" Grid.Row="1" Padding="14,8" Background="#FFFFFF" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
+        <Border Grid.Column="1" Grid.Row="1" Padding="14,8" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBox Text="{services:Loc status_print_hint}" Foreground="{StaticResource Muted}" Style="{StaticResource SelectableTextBox}" />
                     <TextBlock Margin="12,0,0,0" VerticalAlignment="Center">
-                        <Hyperlink NavigateUri="https://github.com/ohyooo/RightMgr" RequestNavigate="SourceCodeLink_RequestNavigate">
+                        <Hyperlink NavigateUri="https://github.com/ohyooo/RightMgr" RequestNavigate="SourceCodeLink_RequestNavigate" Foreground="{StaticResource Muted}">
                             源代码
                         </Hyperlink>
                     </TextBlock>
