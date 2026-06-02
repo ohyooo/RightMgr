@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Reflection;
 using System.Windows.Markup;
 
 namespace RightMgr.Services;
@@ -43,10 +44,7 @@ public static class LocalizationService
             path = Path.Combine(AppContext.BaseDirectory, "i18n.csv");
 
         var result = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
-        if (!File.Exists(path))
-            return result;
-
-        var lines = File.ReadAllLines(path);
+        var lines = File.Exists(path) ? File.ReadAllLines(path) : ReadEmbeddedStrings();
         if (lines.Length == 0)
             return result;
 
@@ -65,6 +63,17 @@ public static class LocalizationService
         }
 
         return result;
+    }
+
+    private static string[] ReadEmbeddedStrings()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream("RightMgr.Resources.i18n.csv");
+        if (stream == null)
+            return [];
+
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd().Split(["\r\n", "\n"], StringSplitOptions.None);
     }
 
     private static List<string> ParseCsvLine(string line)

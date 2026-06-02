@@ -4,7 +4,7 @@
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>RightMgr</RootNamespace>
-    <AssemblyName>右键管理器</AssemblyName>
+    <AssemblyName>RightMgr</AssemblyName>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;ARM64</Platforms>
@@ -25,11 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Resources\i18n.csv">
-      <Link>i18n.csv</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
+    <EmbeddedResource Include="Resources\i18n.csv" LogicalName="RightMgr.Resources.i18n.csv" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\AppIcon.svg" />
     <Content Include="Assets\AppIcon.ico" />

@@ -8,6 +8,8 @@ public static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        Environment.SetEnvironmentVariable("MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY", AppContext.BaseDirectory);
+
         if (args.Any(x => x.Equals("--print-all", StringComparison.OrdinalIgnoreCase)))
         {
             PrintAll();

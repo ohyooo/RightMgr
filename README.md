@@ -69,7 +69,7 @@ dotnet build .\RightMgr.csproj -c Release -p:Platform=x64 -p:PlatformTarget=x64
 | `Properties\PublishProfiles\win-x86.pubxml` | x86 | `win-x86` | x86 自包含发布 |
 | `Properties\PublishProfiles\win-x64.pubxml` | x64 | `win-x64` | x64 自包含发布 |
 | `Properties\PublishProfiles\win-arm64.pubxml` | ARM64 | `win-arm64` | ARM64 自包含发布 |
-| `Properties\PublishProfiles\win-x64-single.pubxml` | x64 | `win-x64` | x64 非自包含单文件发布 |
+| `Properties\PublishProfiles\win-x64-single.pubxml` | x64 | `win-x64` | x64 自包含单文件发布 |
 
 发布 x64 自包含版本：
 
@@ -112,7 +112,7 @@ bin\Release\net8.0-windows10.0.19041.0\win-x64\single\
 编译或发布完成后，运行输出目录中的：
 
 ```text
-右键管理器.exe
+RightMgr.exe
 ```
 
 部分右键菜单项修改需要管理员权限。建议以管理员身份运行程序，以确保注册表写入操作可以正常完成。
