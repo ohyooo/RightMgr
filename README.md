@@ -132,28 +132,30 @@ dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained true -p:
 dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:WindowsAppSDKSelfContained=true
 ```
 
+Windows App SDK 项目发布单文件时必须声明为非打包应用，因此所有单文件命令都需要 `-p:WindowsPackageType=None`。
+
 单文件，框架依赖：
 
 ```powershell
-dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=false -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained false -p:WindowsPackageType=None -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=false -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
 ```
 
 单文件，包含 Windows App Runtime：
 
 ```powershell
-dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained false -p:WindowsPackageType=None -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
 ```
 
 单文件，包含 .NET Runtime：
 
 ```powershell
-dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=false -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=false -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
 ```
 
 单文件，完全自包含：
 
 ```powershell
-dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
+dotnet publish .\RightMgr.csproj -c Release -r win-x64 --self-contained true -p:WindowsPackageType=None -p:PublishSingleFile=true -p:WindowsAppSDKSelfContained=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true
 ```
 
 发布产物默认输出到：
