@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Text.Json.Serialization;
 
 namespace RightMgr.Models;
 
@@ -71,8 +72,10 @@ public sealed class ContextMenuItemInfo : INotifyPropertyChanged
     public string KindGlyph => Kind == ContextMenuKind.ShellVerb ? "\uE713" : "\uE8B7";
     public string CompactTitle => DisplayName;
     public string CompactSubtitle => $"{AppliesTo}  |  {MiddleCategory}  |  {RegistryPath}";
+    [JsonIgnore]
     public ImageSource? IconImageSource => _iconImageSource ??= LoadIconImageSource(_iconFilePath);
-    public TextDecorationCollection? PendingDeleteTextDecorations => IsPendingDelete ? TextDecorations.Strikethrough : null;
+    [JsonIgnore]
+    public TextDecorationCollection? PendingDeleteTextDecorations => IsPendingDelete ? CreatePendingDeleteDecorations() : null;
 
     private void OnPropertyChanged(string propertyName)
     {
@@ -98,5 +101,17 @@ public sealed class ContextMenuItemInfo : INotifyPropertyChanged
         {
             return null;
         }
+    }
+
+    private static TextDecorationCollection CreatePendingDeleteDecorations()
+    {
+        var decoration = new TextDecoration
+        {
+            Location = TextDecorationLocation.Strikethrough,
+            Pen = new Pen(Brushes.IndianRed, 1.8),
+            PenThicknessUnit = TextDecorationUnit.FontRecommended
+        };
+
+        return [decoration];
     }
 }

@@ -298,9 +298,17 @@ public partial class MainWindow : Window
         var category = GetSelectedCategory();
         var includeShellVerb = ShellVerbFilterBox.IsChecked == true;
         var includeShellEx = ShellExFilterBox.IsChecked == true;
+        var includeEnabled = EnabledFilterBox.IsChecked == true;
+        var includeDisabled = DisabledFilterBox.IsChecked == true;
         var query = SearchBox.Text?.Trim() ?? "";
 
-        IEnumerable<ContextMenuItemInfo> items = ApplyTypeAndSearchFilters(_items, includeShellVerb, includeShellEx, query);
+        IEnumerable<ContextMenuItemInfo> items = ApplyTypeAndSearchFilters(
+            _items,
+            includeShellVerb,
+            includeShellEx,
+            includeEnabled,
+            includeDisabled,
+            query);
 
         RefreshCategories(category);
 
@@ -322,11 +330,17 @@ public partial class MainWindow : Window
         IEnumerable<ContextMenuItemInfo> source,
         bool includeShellVerb,
         bool includeShellEx,
+        bool includeEnabled,
+        bool includeDisabled,
         string query)
     {
         var items = source.Where(x =>
             (includeShellVerb && x.Kind == ContextMenuKind.ShellVerb)
             || (includeShellEx && x.Kind == ContextMenuKind.ShellExHandler));
+
+        items = items.Where(x =>
+            (includeEnabled && x.IsEnabled)
+            || (includeDisabled && !x.IsEnabled));
 
         if (!string.IsNullOrWhiteSpace(query))
             items = items.Where(x => Matches(x, query));
@@ -341,7 +355,9 @@ public partial class MainWindow : Window
         var includeShellVerb = ShellVerbFilterBox.IsChecked == true;
         var includeShellEx = ShellExFilterBox.IsChecked == true;
         var query = SearchBox.Text?.Trim() ?? "";
-        var countSource = ApplyTypeAndSearchFilters(_items, includeShellVerb, includeShellEx, query).ToList();
+        var includeEnabled = EnabledFilterBox.IsChecked == true;
+        var includeDisabled = DisabledFilterBox.IsChecked == true;
+        var countSource = ApplyTypeAndSearchFilters(_items, includeShellVerb, includeShellEx, includeEnabled, includeDisabled, query).ToList();
         var categories = countSource
             .GroupBy(x => x.BigCategory, StringComparer.OrdinalIgnoreCase)
             .Select(g => new CategoryItem(g.Key, g.Count()))
@@ -573,18 +589,6 @@ public partial class MainWindow : Window
         SelectFirstItem();
     }
 
-    private void CurrentListToolbar_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        const double inlineThreshold = 430;
-        var stackSearch = e.NewSize.Width < inlineThreshold;
-
-        Grid.SetRow(CurrentListSearchPanel, stackSearch ? 1 : 0);
-        Grid.SetColumn(CurrentListSearchPanel, stackSearch ? 0 : 1);
-        Grid.SetColumnSpan(CurrentListSearchPanel, stackSearch ? 2 : 1);
-        CurrentListSearchPanel.Margin = stackSearch ? new Thickness(0, 8, 0, 0) : new Thickness(14, 0, 0, 0);
-        CurrentListSearchPanel.HorizontalAlignment = stackSearch ? HorizontalAlignment.Left : HorizontalAlignment.Stretch;
-    }
-
     private void ContentSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
     {
         var total = ListPaneColumn.ActualWidth + DetailPaneColumn.ActualWidth;
@@ -619,12 +623,13 @@ public partial class MainWindow : Window
         ClsidBox.Text = item.Clsid ?? "";
         DllPathBox.Text = item.InProcServer32 ?? "";
         IconResourceBox.Text = item.IconResource ?? "";
-        OpenClsidButton.Visibility = string.IsNullOrWhiteSpace(item.Clsid) ? Visibility.Collapsed : Visibility.Visible;
-        OpenDllPathButton.Visibility = string.IsNullOrWhiteSpace(item.InProcServer32) ? Visibility.Collapsed : Visibility.Visible;
-        OpenIconPathButton.Visibility = HasOpenableFilePath(item.IconResource) ? Visibility.Visible : Visibility.Collapsed;
         EnableSwitch.IsChecked = item.IsEnabled;
+        OpenClsidButton.Visibility = !string.IsNullOrWhiteSpace(item.Clsid) ? Visibility.Visible : Visibility.Collapsed;
+        OpenDllPathButton.Visibility = !string.IsNullOrWhiteSpace(item.InProcServer32) ? Visibility.Visible : Visibility.Collapsed;
+        OpenIconPathButton.Visibility = HasOpenableFilePath(item.IconResource) ? Visibility.Visible : Visibility.Collapsed;
         EnableSwitch.IsEnabled = true;
         SaveButton.IsEnabled = true;
+        SaveButton.Content = LocalizationService.T("action_save");
         DeleteButton.IsEnabled = true;
         DeleteButton.Content = item.IsPendingDelete ? LocalizationService.T("action_cancel_delete") : LocalizationService.T("action_delete");
 
@@ -662,6 +667,7 @@ public partial class MainWindow : Window
         HeaderIcon.Visibility = Visibility.Collapsed;
         EnableSwitch.IsEnabled = false;
         SaveButton.IsEnabled = false;
+        SaveButton.Content = LocalizationService.T("action_save");
         DeleteButton.IsEnabled = false;
     }
 
@@ -671,6 +677,55 @@ public partial class MainWindow : Window
             return;
 
         OpenRegistryPath(_selected.RegistryPath);
+    }
+
+    private void ExportRegistryButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selected == null || string.IsNullOrWhiteSpace(_selected.RegistryPath))
+            return;
+
+        try
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = LocalizationService.T("dialog_export_reg_title"),
+                Filter = LocalizationService.T("dialog_export_reg_filter"),
+                FileName = BuildRegFileName(_selected),
+                AddExtension = true,
+                DefaultExt = ".reg",
+                OverwritePrompt = true
+            };
+
+            if (dialog.ShowDialog(this) != true)
+                return;
+
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "reg.exe",
+                Arguments = $"export \"{_selected.RegistryPath}\" \"{dialog.FileName}\" /y",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            using var process = System.Diagnostics.Process.Start(psi);
+            if (process == null)
+                throw new InvalidOperationException("无法启动 reg.exe");
+
+            var output = process.StandardOutput.ReadToEnd();
+            var error = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            if (process.ExitCode != 0)
+                throw new InvalidOperationException(string.IsNullOrWhiteSpace(error) ? output : error);
+
+            StatusText.Text = LocalizationService.Format("status_exported_reg", _selected.DisplayName, dialog.FileName);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, LocalizationService.T("dialog_notice"), MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void OpenClsidRegistryButton_Click(object sender, RoutedEventArgs e)
@@ -737,6 +792,14 @@ public partial class MainWindow : Window
     private static bool HasOpenableFilePath(string? path)
     {
         return !string.IsNullOrWhiteSpace(ShellResourceResolver.ExtractFilePathFromResource(path));
+    }
+
+    private static string BuildRegFileName(ContextMenuItemInfo item)
+    {
+        var name = string.IsNullOrWhiteSpace(item.DisplayName) ? item.KeyName : item.DisplayName;
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var safe = new string(name.Select(ch => invalidChars.Contains(ch) ? '-' : ch).ToArray());
+        return string.IsNullOrWhiteSpace(safe) ? "export.reg" : $"{safe}.reg";
     }
 
     private void ChooseIconButton_Click(object sender, RoutedEventArgs e)
@@ -843,6 +906,7 @@ public partial class MainWindow : Window
         _selected.IsPendingDelete = !_selected.IsPendingDelete;
         MenuNameText.TextDecorations = _selected.IsPendingDelete ? TextDecorations.Strikethrough : null;
         DeleteButton.Content = _selected.IsPendingDelete ? LocalizationService.T("action_cancel_delete") : LocalizationService.T("action_delete");
+        SaveButton.Content = LocalizationService.T("action_save");
         ItemsList.Items.Refresh();
         StatusText.Text = _selected.IsPendingDelete ? LocalizationService.T("status_pending_delete") : LocalizationService.T("status_cancel_delete");
     }

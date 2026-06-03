@@ -15,9 +15,12 @@ search_com,CLSID / COM / DLL,CLSID / COM / DLL
 list_title,右键菜单项,Context menu entries
 filter_shell,传统 shell,Shell verbs
 filter_shellex,ShellEx / COM,ShellEx / COM
+filter_enabled,启用,Enabled
+filter_disabled,禁用,Disabled
 action_refresh,刷新,Refresh
 action_export,导出,Export
 action_open_registry,打开注册表,Open Registry
+action_export_reg,导出 REG,Export REG
 action_open_clsid,打开 CLSID,Open CLSID
 action_open_path,打开路径,Open path
 action_choose_icon,选择图标,Choose icon
@@ -48,7 +51,10 @@ dialog_export_category,分类：{0},Category: {0}
 dialog_export_save,导出,Export
 dialog_export_cancel,取消,Cancel
 dialog_export_filter,文本文件|*.txt|所有文件|*.*,Text files|*.txt|All files|*.*
+dialog_export_reg_title,导出注册表,Export registry
+dialog_export_reg_filter,注册表文件|*.reg|所有文件|*.*,Registry files|*.reg|All files|*.*
 status_summary,当前列表：传统 shell {0} 项，ShellEx/COM {1} 项，已禁用 {2} 项。,Current list: {0} shell verbs, {1} ShellEx/COM, {2} disabled.
+status_exported_reg,已导出 {0} 到 {1},Exported {0} to {1}
 status_scanned,共扫描到 {0} 项，覆盖 HKCU/HKLM/HKCR、shell、shellex、扩展名与 PowerToys 等常见入口。,Scanned {0} entries across HKCU/HKLM/HKCR shell shellex extensions and common entries such as PowerToys.
 status_regex_invalid,正则表达式无效。,Invalid regular expression.
 status_deleted,已删除当前项。,Current entry deleted.

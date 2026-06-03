@@ -492,7 +492,7 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <Border Padding="14,10" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Background="{DynamicResource WindowBg}">
-                            <Grid x:Name="CurrentListToolbar" SizeChanged="CurrentListToolbar_SizeChanged">
+                            <Grid x:Name="CurrentListToolbar">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
@@ -501,22 +501,7 @@
                                     <ColumnDefinition Width="*" MinWidth="0" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <CheckBox x:Name="ShellVerbFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" Margin="0,0,18,0" VerticalAlignment="Center" VerticalContentAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
-                                            <TextBlock Text="{services:Loc filter_shell}" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </CheckBox>
-                                    <CheckBox x:Name="ShellExFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" VerticalAlignment="Center" VerticalContentAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
-                                            <TextBlock Text="{services:Loc filter_shellex}" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </CheckBox>
-                                </StackPanel>
-
-                                <Grid x:Name="CurrentListSearchPanel" Grid.Column="1" Width="230" Margin="14,0,0,0" VerticalAlignment="Top">
+                                <Grid x:Name="CurrentListSearchPanel" Grid.ColumnSpan="2" Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
@@ -539,6 +524,33 @@
                                         </Border>
                                     </Popup>
                                 </Grid>
+
+                                <UniformGrid x:Name="CurrentListTypeFilterPanel" Grid.Row="1" Grid.ColumnSpan="2" Columns="2" Rows="2" Margin="0" VerticalAlignment="Center">
+                                    <CheckBox x:Name="ShellVerbFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" Margin="0,0,18,0" VerticalAlignment="Center" VerticalContentAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
+                                            <TextBlock Text="{services:Loc filter_shell}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <CheckBox x:Name="ShellExFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" Margin="0,0,18,0" VerticalAlignment="Center" VerticalContentAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
+                                            <TextBlock Text="{services:Loc filter_shellex}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <CheckBox x:Name="EnabledFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" Margin="0,0,18,0" VerticalAlignment="Center" VerticalContentAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
+                                            <TextBlock Text="{services:Loc filter_enabled}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <CheckBox x:Name="DisabledFilterBox" IsChecked="True" Checked="TypeFilter_Changed" Unchecked="TypeFilter_Changed" VerticalAlignment="Center" VerticalContentAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="&#xE711;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource Accent}" Margin="{StaticResource InlineIconMargin}" VerticalAlignment="Center" />
+                                            <TextBlock Text="{services:Loc filter_disabled}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                </UniformGrid>
                             </Grid>
                         </Border>
 
@@ -597,7 +609,10 @@
                             </UniformGrid>
 
                             <DockPanel Margin="0,12,0,4">
-                                <Button DockPanel.Dock="Right" Click="OpenRegistryButton_Click" Margin="10,0,0,0" Content="{services:Loc action_open_registry}" />
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="10,0,0,0">
+                                    <Button Click="ExportRegistryButton_Click" Margin="0,0,8,0" Content="{services:Loc action_export_reg}" />
+                                    <Button Click="OpenRegistryButton_Click" Content="{services:Loc action_open_registry}" />
+                                </StackPanel>
                                 <TextBlock Text="{services:Loc field_registry_path}" Style="{StaticResource FieldLabel}" Margin="0" VerticalAlignment="Center" />
                             </DockPanel>
                             <TextBox x:Name="RegistryPathBox" Style="{StaticResource WrappingReadOnlyDetailTextBox}" />
