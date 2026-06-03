@@ -47,10 +47,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -118,7 +118,7 @@ jobs:
           Compress-Archive -Path (Join-Path $publishDir "*") -DestinationPath $zipPath -Force
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RightMgr-${{ matrix.rid }}
           path: dist/RightMgr-${{ matrix.rid }}.zip
@@ -126,7 +126,7 @@ jobs:
 
       - name: Upload release asset
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/RightMgr-${{ matrix.rid }}.zip
 
@@ -136,10 +136,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -205,7 +205,7 @@ jobs:
           Compress-Archive -Path (Join-Path $publishDir "*") -DestinationPath $zipPath -Force
 
       - name: Upload framework-dependent artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RightMgr-win-x64-framework-dependent
           path: dist/RightMgr-win-x64-framework-dependent.zip
@@ -213,7 +213,7 @@ jobs:
 
       - name: Upload framework-dependent release asset
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/RightMgr-win-x64-framework-dependent.zip
 
@@ -223,10 +223,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -291,7 +291,7 @@ jobs:
           Copy-Item -LiteralPath $sourcePath -Destination $assetPath -Force
 
       - name: Upload single-file artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RightMgr-win-x64-single
           path: dist/RightMgr.exe
@@ -299,6 +299,6 @@ jobs:
 
       - name: Upload single-file release asset
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/RightMgr.exe
