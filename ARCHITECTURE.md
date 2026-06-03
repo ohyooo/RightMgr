@@ -1,6 +1,6 @@
 # RightMgr 项目解析
 
-本文档基于当前源码目录 `D:\Documents\VSProjects\RightMgr` 分析，适合刚接手维护 RightMgr 的开发者阅读。
+本文档基于当前源码目录分析，适合刚接手维护 RightMgr 的开发者阅读。
 
 ## 1. 项目整体说明
 
