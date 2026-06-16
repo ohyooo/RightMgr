@@ -17,10 +17,10 @@ public static class LocalizationService
         if (strings.TryGetValue(key, out var row))
         {
             if (row.TryGetValue(Language, out var value) && !string.IsNullOrWhiteSpace(value))
-                return value;
+                return UnescapeText(value);
 
             if (row.TryGetValue(FallbackLanguage, out value) && !string.IsNullOrWhiteSpace(value))
-                return value;
+                return UnescapeText(value);
         }
 
         return key;
@@ -35,6 +35,14 @@ public static class LocalizationService
             return "zh-Hans";
 
         return "en-US";
+    }
+
+    private static string UnescapeText(string value)
+    {
+        return value
+            .Replace("\\r\\n", Environment.NewLine, StringComparison.Ordinal)
+            .Replace("\\n", Environment.NewLine, StringComparison.Ordinal)
+            .Replace("\\t", "\t", StringComparison.Ordinal);
     }
 
     private static Dictionary<string, Dictionary<string, string>> LoadStrings()

@@ -92,6 +92,20 @@ public static class ShellResourceResolver
         return key?.GetValue(null)?.ToString();
     }
 
+    public static string? ResolveDefaultIcon(string sourceRoot, string relativePath)
+    {
+        var root = sourceRoot switch
+        {
+            "HKCU" => Registry.CurrentUser,
+            "HKLM" => Registry.LocalMachine,
+            "HKCR" => Registry.ClassesRoot,
+            _ => Registry.ClassesRoot
+        };
+
+        using var key = root.OpenSubKey($@"{relativePath}\DefaultIcon");
+        return key?.GetValue(null)?.ToString();
+    }
+
     public static string? ResolveInProcServer32(string clsid)
     {
         using var key = Registry.ClassesRoot.OpenSubKey($@"CLSID\{clsid}\InprocServer32");

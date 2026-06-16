@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.5.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.5.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\GlobalUsings.cs" Link="Source\GlobalUsings.cs" />
+    <Compile Include="..\..\src\Models\ContextMenuItemInfo.cs" Link="Source\Models\ContextMenuItemInfo.cs" />
+    <Compile Include="..\..\src\Services\ContextMenuRegistryEditor.cs" Link="Source\Services\ContextMenuRegistryEditor.cs" />
+    <Compile Include="..\..\src\Services\ContextMenuRegistryScanner.cs" Link="Source\Services\ContextMenuRegistryScanner.cs" />
+    <Compile Include="..\..\src\Services\ElevatedDeleteService.cs" Link="Source\Services\ElevatedDeleteService.cs" />
+    <Compile Include="..\..\src\Services\ShellIconService.cs" Link="Source\Services\ShellIconService.cs" />
+    <Compile Include="..\..\src\Services\ShellResourceResolver.cs" Link="Source\Services\ShellResourceResolver.cs" />
+  </ItemGroup>
+</Project>

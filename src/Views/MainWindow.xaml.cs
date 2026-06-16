@@ -336,7 +336,7 @@ public partial class MainWindow : Window
     {
         var items = source.Where(x =>
             (includeShellVerb && x.Kind == ContextMenuKind.ShellVerb)
-            || (includeShellEx && x.Kind == ContextMenuKind.ShellExHandler));
+            || (includeShellEx && (x.Kind == ContextMenuKind.ShellExHandler || x.Kind == ContextMenuKind.ModernExtension)));
 
         items = items.Where(x =>
             (includeEnabled && x.IsEnabled)
@@ -483,8 +483,9 @@ public partial class MainWindow : Window
     {
         var shell = _filtered.Count(x => x.Kind == ContextMenuKind.ShellVerb);
         var shellex = _filtered.Count(x => x.Kind == ContextMenuKind.ShellExHandler);
+        var modern = _filtered.Count(x => x.Kind == ContextMenuKind.ModernExtension);
         var disabled = _filtered.Count(x => !x.IsEnabled);
-        return LocalizationService.Format("status_summary", shell, shellex, disabled);
+        return LocalizationService.Format("status_summary", shell, shellex, modern, disabled);
     }
 
     private void SelectFirstItem()
@@ -627,10 +628,10 @@ public partial class MainWindow : Window
         OpenClsidButton.Visibility = !string.IsNullOrWhiteSpace(item.Clsid) ? Visibility.Visible : Visibility.Collapsed;
         OpenDllPathButton.Visibility = !string.IsNullOrWhiteSpace(item.InProcServer32) ? Visibility.Visible : Visibility.Collapsed;
         OpenIconPathButton.Visibility = HasOpenableFilePath(item.IconResource) ? Visibility.Visible : Visibility.Collapsed;
-        EnableSwitch.IsEnabled = true;
-        SaveButton.IsEnabled = true;
+        EnableSwitch.IsEnabled = !item.IsReadOnly;
+        SaveButton.IsEnabled = !item.IsReadOnly;
         SaveButton.Content = LocalizationService.T("action_save");
-        DeleteButton.IsEnabled = true;
+        DeleteButton.IsEnabled = !item.IsReadOnly;
         DeleteButton.Content = item.IsPendingDelete ? LocalizationService.T("action_cancel_delete") : LocalizationService.T("action_delete");
 
         if (!string.IsNullOrWhiteSpace(item.IconFilePath) && File.Exists(item.IconFilePath))
@@ -824,7 +825,16 @@ public partial class MainWindow : Window
         {
             if (_selected.IsPendingDelete)
             {
-                ContextMenuRegistryEditor.Delete(_selected);
+                try
+                {
+                    ContextMenuRegistryEditor.Delete(_selected);
+                }
+                catch (Exception ex) when (ElevatedDeleteService.IsPermissionFailure(ex))
+                {
+                    PromptRestartElevatedForDelete(_selected, ex.Message);
+                    return;
+                }
+
                 _items.Remove(_selected);
                 ApplyFilters();
                 SelectFirstItem();
@@ -903,12 +913,48 @@ public partial class MainWindow : Window
         if (_selected == null)
             return;
 
+        if (!_selected.IsPendingDelete && !ContextMenuRegistryEditor.CanDelete(_selected, out var deletePermissionError))
+        {
+            PromptRestartElevatedForDelete(_selected, deletePermissionError);
+            return;
+        }
+
+        if (!_selected.IsPendingDelete && IsPowerToysShellExtension(_selected))
+        {
+            var message = LocalizationService.Format("dialog_delete_powertoys_message", _selected.DisplayName);
+            var result = MessageBox.Show(this, message, LocalizationService.T("dialog_notice"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusText.Text = LocalizationService.T("status_cancel_delete");
+                return;
+            }
+        }
+
         _selected.IsPendingDelete = !_selected.IsPendingDelete;
         MenuNameText.TextDecorations = _selected.IsPendingDelete ? TextDecorations.Strikethrough : null;
         DeleteButton.Content = _selected.IsPendingDelete ? LocalizationService.T("action_cancel_delete") : LocalizationService.T("action_delete");
         SaveButton.Content = LocalizationService.T("action_save");
         ItemsList.Items.Refresh();
         StatusText.Text = _selected.IsPendingDelete ? LocalizationService.T("status_pending_delete") : LocalizationService.T("status_cancel_delete");
+    }
+
+    private void PromptRestartElevatedForDelete(ContextMenuItemInfo item, string? reason)
+    {
+        var message = LocalizationService.Format("dialog_delete_elevate_message", reason ?? "");
+        var result = MessageBox.Show(this, message, LocalizationService.T("dialog_notice"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        if (result != MessageBoxResult.Yes)
+        {
+            StatusText.Text = LocalizationService.T("status_cancel_delete");
+            return;
+        }
+
+        ElevatedDeleteService.RestartElevatedForDelete(item);
+        Close();
+    }
+
+    private static bool IsPowerToysShellExtension(ContextMenuItemInfo item)
+    {
+        return item.Clsid is "{0440049F-D1DC-4E46-B27B-98393D79486B}" or "{84D68575-E186-46AD-B0CB-BAEB45EE29C0}";
     }
 
     private void CopyAllButton_Click(object sender, RoutedEventArgs e)

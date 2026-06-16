@@ -9,7 +9,8 @@ namespace RightMgr.Models;
 public enum ContextMenuKind
 {
     ShellVerb,
-    ShellExHandler
+    ShellExHandler,
+    ModernExtension
 }
 
 public sealed class ContextMenuItemInfo : INotifyPropertyChanged
@@ -56,6 +57,7 @@ public sealed class ContextMenuItemInfo : INotifyPropertyChanged
     }
     public string? InProcServer32 { get; set; }
     public string? Description { get; set; }
+    public bool IsReadOnly { get; set; }
     public bool IsPendingDelete
     {
         get => _isPendingDelete;
@@ -69,7 +71,12 @@ public sealed class ContextMenuItemInfo : INotifyPropertyChanged
     }
 
     public string Summary => $"{DisplayName}  |  {AppliesTo}  |  {MiddleCategory}  |  {Scope}";
-    public string KindGlyph => Kind == ContextMenuKind.ShellVerb ? "\uE713" : "\uE8B7";
+    public string KindGlyph => Kind switch
+    {
+        ContextMenuKind.ShellVerb => "\uE713",
+        ContextMenuKind.ShellExHandler => "\uE8B7",
+        _ => "\uE8A5"
+    };
     public string CompactTitle => DisplayName;
     public string CompactSubtitle => $"{AppliesTo}  |  {MiddleCategory}  |  {RegistryPath}";
     [JsonIgnore]

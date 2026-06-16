@@ -55,9 +55,11 @@ public static class ContextMenuRegistryScanner
         foreach (var root in Roots)
         {
             foreach (var location in BaseLocations)
-                ScanPath(result, root, location);
+            ScanPath(result, root, location);
 
             ScanFileExtensions(result, root);
+            ScanPackagedComPackages(result, root);
+            ScanContextMenuOptInClsids(result, root);
         }
 
         return result
@@ -82,6 +84,7 @@ public static class ContextMenuRegistryScanner
             $"  值: {item.Value}\n" +
             $"  CLSID: {item.Clsid}\n" +
             $"  DLL: {item.InProcServer32}\n" +
+            $"  只读: {item.IsReadOnly}\n" +
             $"  启用: {item.IsEnabled}\n"));
     }
 
@@ -171,6 +174,154 @@ public static class ContextMenuRegistryScanner
         ScanPath(result, root, new ScanLocation($@"{association}\shellex\ContextMenuHandlers", appliesTo, ContextMenuKind.ShellExHandler));
     }
 
+    private static void ScanPowerToysComponents(List<ContextMenuItemInfo> result, RegistryRoot root)
+    {
+        var relativePath = Combine(root.ClassesPrefix, @"powertoys\components");
+        using var key = root.Key.OpenSubKey(relativePath);
+        if (key == null) return;
+
+        foreach (var valueName in key.GetValueNames())
+        {
+            if (string.IsNullOrWhiteSpace(valueName))
+                continue;
+
+            var isDisabledBackup = valueName.StartsWith("_RightMgr_Disabled_", StringComparison.OrdinalIgnoreCase);
+            var componentName = isDisabledBackup ? valueName["_RightMgr_Disabled_".Length..] : valueName;
+            if (!IsPowerToysContextMenuComponent(componentName))
+                continue;
+
+            var displayName = HumanizePowerToysComponentName(componentName);
+            result.Add(new ContextMenuItemInfo
+            {
+                BigCategory = "现代菜单",
+                MiddleCategory = "PowerToys 组件",
+                SmallCategory = "powertoys",
+                Scope = root.Scope,
+                AppliesTo = GetPowerToysAppliesTo(componentName),
+                SourceRoot = root.Label,
+                RelativeRegistryPath = relativePath,
+                MenuName = componentName,
+                DisplayName = displayName,
+                RegistryPath = $@"{root.DisplayPrefix}\{relativePath}",
+                KeyName = componentName,
+                ValueName = componentName,
+                Value = key.GetValue(valueName)?.ToString(),
+                Kind = ContextMenuKind.ModernExtension,
+                IsEnabled = !isDisabledBackup,
+                IconResource = ShellResourceResolver.ResolveDefaultIcon(root.Label, Combine(root.ClassesPrefix, "powertoys")),
+                IconFilePath = ShellIconService.GetPngIconPathForTarget("PowerToys", ShellResourceResolver.ResolveDefaultIcon(root.Label, Combine(root.ClassesPrefix, "powertoys"))),
+                Description = $"PowerToys 组件 · 作用于 {GetPowerToysAppliesTo(componentName)} · {displayName}",
+                IsReadOnly = false
+            });
+        }
+    }
+
+    private static void ScanPackagedComPackages(List<ContextMenuItemInfo> result, RegistryRoot root)
+    {
+        var packagesPath = Combine(root.ClassesPrefix, @"PackagedCom\Package");
+        using var packages = root.Key.OpenSubKey(packagesPath);
+        if (packages == null) return;
+
+        foreach (var packageName in packages.GetSubKeyNames())
+        {
+            using var packageKey = packages.OpenSubKey(packageName);
+            using var servers = packageKey?.OpenSubKey("Server");
+            if (servers == null) continue;
+
+            foreach (var serverName in servers.GetSubKeyNames())
+            {
+                using var server = servers.OpenSubKey(serverName);
+                if (server == null) continue;
+
+                var displayName = FirstNonEmpty(
+                    ShellResourceResolver.ResolveDisplayName(server.GetValue("ApplicationDisplayName")?.ToString()),
+                    ShellResourceResolver.ResolveDisplayName(server.GetValue("DisplayName")?.ToString()),
+                    ShellResourceResolver.ResolveDisplayName(server.GetValue("DllPath")?.ToString()),
+                    packageName);
+                if (string.IsNullOrWhiteSpace(displayName))
+                    continue;
+
+                var relativeItemPath = Combine(packagesPath, packageName, "Server", serverName);
+                var clsid = FindPackagedComClassId(root, packageName);
+                var dllPath = server.GetValue("DllPath")?.ToString();
+
+                result.Add(new ContextMenuItemInfo
+                {
+                    BigCategory = "现代菜单",
+                    MiddleCategory = "Packaged COM / AppX",
+                    SmallCategory = "PackagedCom",
+                    Scope = root.Scope,
+                    AppliesTo = "打包应用",
+                    SourceRoot = root.Label,
+                    RelativeRegistryPath = relativeItemPath,
+                    MenuName = packageName,
+                    DisplayName = displayName,
+                    RegistryPath = $@"{root.DisplayPrefix}\{relativeItemPath}",
+                    KeyName = serverName,
+                    ValueName = "ApplicationDisplayName / DisplayName / DllPath",
+                    Value = FirstNonEmpty(server.GetValue("ApplicationDisplayName")?.ToString(), server.GetValue("DisplayName")?.ToString(), dllPath),
+                    Kind = ContextMenuKind.ModernExtension,
+                    IsEnabled = server.GetValue("_RightMgr_Disabled") == null,
+                    Clsid = clsid,
+                    InProcServer32 = dllPath,
+                    IconResource = dllPath,
+                    IconFilePath = ShellIconService.GetPngIconPathForTarget("Packaged COM", dllPath),
+                    Description = $"Packaged COM 扩展 · {packageName} · {displayName}",
+                    IsReadOnly = false
+                });
+            }
+        }
+    }
+
+    private static void ScanContextMenuOptInClsids(List<ContextMenuItemInfo> result, RegistryRoot root)
+    {
+        var clsidPath = Combine(root.ClassesPrefix, "CLSID");
+        using var clsids = root.Key.OpenSubKey(clsidPath);
+        if (clsids == null) return;
+
+        foreach (var subName in clsids.GetSubKeyNames())
+        {
+            if (!ShellResourceResolver.IsClsid(subName))
+                continue;
+
+            using var clsidKey = clsids.OpenSubKey(subName);
+            if (clsidKey == null || clsidKey.GetValue("ContextMenuOptIn") == null && clsidKey.GetValue("_RightMgr_Disabled_ContextMenuOptIn") == null)
+                continue;
+
+            var inproc = ShellResourceResolver.ResolveInProcServer32(subName);
+            var defaultName = clsidKey.GetValue(null)?.ToString();
+            var displayName = FirstNonEmpty(ShellResourceResolver.ResolveDisplayName(defaultName), ShellResourceResolver.ResolveClsidName(subName), subName) ?? subName;
+            var relativeItemPath = Combine(clsidPath, subName);
+
+            result.Add(new ContextMenuItemInfo
+            {
+                BigCategory = "现代菜单",
+                MiddleCategory = "COM ContextMenuOptIn",
+                SmallCategory = "CLSID",
+                Scope = root.Scope,
+                AppliesTo = "文件和文件夹",
+                SourceRoot = root.Label,
+                RelativeRegistryPath = relativeItemPath,
+                MenuName = defaultName ?? subName,
+                DisplayName = displayName,
+                RegistryPath = $@"{root.DisplayPrefix}\{relativeItemPath}",
+                KeyName = subName,
+                ValueName = "ContextMenuOptIn / InprocServer32",
+                Value = FirstNonEmpty(defaultName, inproc),
+                Kind = ContextMenuKind.ModernExtension,
+                IsEnabled = clsidKey.GetValue("ContextMenuOptIn") != null,
+                Clsid = subName,
+                ClsidName = defaultName,
+                LocalizedString = clsidKey.GetValue("LocalizedString")?.ToString(),
+                IconResource = ShellResourceResolver.ResolveClsidIcon(subName) ?? inproc,
+                IconFilePath = ShellIconService.GetPngIconPathForTarget("COM", ShellResourceResolver.ResolveClsidIcon(subName) ?? inproc),
+                InProcServer32 = inproc,
+                Description = $"COM ContextMenuOptIn 扩展 · {displayName}",
+                IsReadOnly = false
+            });
+        }
+    }
+
     private static void AddItem(List<ContextMenuItemInfo> result, RegistryRoot root, ScanLocation location, RegistryKey sub, string subName)
     {
         var defaultValue = sub.GetValue(null)?.ToString();
@@ -215,6 +366,7 @@ public static class ContextMenuRegistryScanner
             Value = location.Kind == ContextMenuKind.ShellVerb ? FirstNonEmpty(command, defaultValue) : defaultValue,
             Kind = location.Kind,
             IsEnabled = IsEnabled(sub, location.Kind),
+            IsReadOnly = false,
             Clsid = clsid,
             ClsidName = clsidName,
             LocalizedString = localized,
@@ -274,6 +426,65 @@ public static class ContextMenuRegistryScanner
     {
         var owner = string.IsNullOrWhiteSpace(item.Clsid) ? item.KeyName : item.Clsid;
         return $"{NormalizeClassesPath(item.RelativeRegistryPath)}|{owner}";
+    }
+
+    private static string? FindPackagedComClassId(RegistryRoot root, string packageName)
+    {
+        var classIndexPath = Combine(root.ClassesPrefix, @"PackagedCom\ClassIndex");
+        using var classIndex = root.Key.OpenSubKey(classIndexPath);
+        if (classIndex == null) return null;
+
+        foreach (var clsid in classIndex.GetSubKeyNames())
+        {
+            using var clsidKey = classIndex.OpenSubKey(clsid);
+            if (clsidKey?.GetSubKeyNames().Any(x => x.Equals(packageName, StringComparison.OrdinalIgnoreCase)) == true)
+                return clsid;
+        }
+
+        return null;
+    }
+
+    private static bool IsPowerToysContextMenuComponent(string valueName)
+    {
+        return valueName.Contains("PowerRename", StringComparison.OrdinalIgnoreCase)
+               || valueName.Contains("FileLocksmith", StringComparison.OrdinalIgnoreCase)
+               || valueName.Contains("ImageResizer", StringComparison.OrdinalIgnoreCase)
+               || valueName.Contains("NewPlus", StringComparison.OrdinalIgnoreCase)
+               || valueName.Contains("Peek", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string HumanizePowerToysComponentName(string valueName)
+    {
+        var name = valueName
+            .Replace("AssetsFiles_Component", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Files_Component", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("_Component", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Remove", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Folder", "", StringComparison.OrdinalIgnoreCase);
+
+        return name switch
+        {
+            var x when x.Equals("PowerRename", StringComparison.OrdinalIgnoreCase) => "PowerRename",
+            var x when x.Equals("FileLocksmith", StringComparison.OrdinalIgnoreCase) => "File Locksmith",
+            var x when x.Equals("ImageResizer", StringComparison.OrdinalIgnoreCase) => "Image Resizer",
+            var x when x.Equals("NewPlus", StringComparison.OrdinalIgnoreCase) => "New+",
+            _ => SplitPascalCase(name)
+        };
+    }
+
+    private static string GetPowerToysAppliesTo(string valueName)
+    {
+        return valueName.Contains("Folder", StringComparison.OrdinalIgnoreCase)
+            ? "文件夹"
+            : "文件和文件夹";
+    }
+
+    private static string SplitPascalCase(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return value;
+
+        return System.Text.RegularExpressions.Regex.Replace(value, "([a-z])([A-Z])", "$1 $2");
     }
 
     private static string NormalizeClassesPath(string path)

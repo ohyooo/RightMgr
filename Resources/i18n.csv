@@ -53,7 +53,7 @@ dialog_export_cancel,取消,Cancel
 dialog_export_filter,文本文件|*.txt|所有文件|*.*,Text files|*.txt|All files|*.*
 dialog_export_reg_title,导出注册表,Export registry
 dialog_export_reg_filter,注册表文件|*.reg|所有文件|*.*,Registry files|*.reg|All files|*.*
-status_summary,当前列表：传统 shell {0} 项，ShellEx/COM {1} 项，已禁用 {2} 项。,Current list: {0} shell verbs, {1} ShellEx/COM, {2} disabled.
+status_summary,当前列表：传统 shell {0} 项，ShellEx/COM {1} 项，现代/打包 {2} 项，已禁用 {3} 项。,Current list: {0} shell verbs, {1} ShellEx/COM, {2} modern/packaged, {3} disabled.
 status_exported_reg,已导出 {0} 到 {1},Exported {0} to {1}
 status_scanned,共扫描到 {0} 项，覆盖 HKCU/HKLM/HKCR、shell、shellex、扩展名与 PowerToys 等常见入口。,Scanned {0} entries across HKCU/HKLM/HKCR shell shellex extensions and common entries such as PowerToys.
 status_regex_invalid,正则表达式无效。,Invalid regular expression.
@@ -63,6 +63,8 @@ status_copy,已复制当前项详情。,Entry details copied.
 status_pending_delete,已标记待删除，点击保存后才会真正删除。,Marked for deletion. Click Save to delete permanently.
 status_cancel_delete,已取消待删除。,Deletion mark removed.
 dialog_notice,提示,Notice
+dialog_delete_elevate_message,当前权限无法删除此项。原因：{0}\n\n是否以管理员身份重启并删除此项？,Current permissions cannot delete this entry. Reason: {0}\n\nRestart as administrator and delete it?
+dialog_delete_powertoys_message,{0} 是 PowerToys 管理的右键扩展。\n\nRightMgr 只会删除/禁用注册表入口，不会修改 PowerToys 配置；如果 PowerToys 模块仍处于启用状态，它可能会在重启或运行时重新注册此菜单。\n\n是否继续？,{0} is a context menu extension managed by PowerToys.\n\nRightMgr will only delete/disable the registry entry and will not modify PowerToys settings. If the PowerToys module remains enabled it may register this menu again after restart or while running.\n\nContinue?
 dialog_icon_title,选择图标资源,Choose icon resource
 dialog_icon_filter,图标/程序/库文件|*.ico;*.exe;*.dll;*.icl;*.png|所有文件|*.*,Icons/programs/libraries|*.ico;*.exe;*.dll;*.icl;*.png|All files|*.*
 format_menu_name,菜单名,Menu name

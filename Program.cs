@@ -1,5 +1,6 @@
 using RightMgr.Services;
 using RightMgr.Views;
+using System.Windows;
 
 namespace RightMgr;
 
@@ -18,6 +19,10 @@ public static class Program
 
         var app = new App();
         app.InitializeComponent();
+
+        if (!ElevatedDeleteService.TryRunPendingDeletes(args, out var deleteError))
+            MessageBox.Show(deleteError, "RightMgr", MessageBoxButton.OK, MessageBoxImage.Warning);
+
         app.Run(new MainWindow(ParseThemeMode(args) ?? AppConfigService.LoadThemeMode() ?? AppThemeMode.System));
     }
 
