@@ -22,6 +22,8 @@ public static class Program
 
         if (!ElevatedDeleteService.TryRunPendingDeletes(args, out var deleteError))
             MessageBox.Show(deleteError, "RightMgr", MessageBoxButton.OK, MessageBoxImage.Warning);
+        if (!ElevatedDeleteService.TryRunPendingRestores(args, out var restoreError))
+            MessageBox.Show(restoreError, "RightMgr", MessageBoxButton.OK, MessageBoxImage.Warning);
 
         app.Run(new MainWindow(ParseThemeMode(args) ?? AppConfigService.LoadThemeMode() ?? AppThemeMode.System));
     }

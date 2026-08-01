@@ -5,6 +5,23 @@ namespace RightMgr.Services;
 
 public static class ContextMenuRegistryEditor
 {
+    public static bool IsValueOnlyItem(ContextMenuItemInfo item) => IsPowerToysComponent(item);
+
+    public static string GetDeletedValueName(ContextMenuItemInfo item) =>
+        item.IsEnabled ? item.KeyName : GetDisabledValueName(item.KeyName);
+
+    public static bool Exists(ContextMenuItemInfo item)
+    {
+        if (IsPowerToysComponent(item))
+        {
+            using var key = OpenItemKey(item, writable: false);
+            return key?.GetValueNames().Contains(GetDeletedValueName(item), StringComparer.OrdinalIgnoreCase) == true;
+        }
+
+        using var target = OpenItemKey(item, writable: false);
+        return target != null;
+    }
+
     public static bool CanDelete(ContextMenuItemInfo item, out string? error)
     {
         error = null;
@@ -147,7 +164,7 @@ public static class ContextMenuRegistryEditor
         if (IsPowerToysComponent(item))
         {
             using var key = OpenItemKey(item, writable: true) ?? throw new InvalidOperationException("注册表项不存在");
-            key.DeleteValue(item.IsEnabled ? item.KeyName : GetDisabledValueName(item.KeyName), throwOnMissingValue: false);
+            key.DeleteValue(GetDeletedValueName(item), throwOnMissingValue: false);
             return;
         }
         var (root, path) = ResolveRootAndPath(item);

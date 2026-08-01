@@ -58,6 +58,9 @@ public sealed class ContextMenuItemInfo : INotifyPropertyChanged
     public string? InProcServer32 { get; set; }
     public string? Description { get; set; }
     public bool IsReadOnly { get; set; }
+    public bool IsInRecycleBin { get; set; }
+    public string? RecycleBinId { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
     public bool IsPendingDelete
     {
         get => _isPendingDelete;
@@ -78,7 +81,9 @@ public sealed class ContextMenuItemInfo : INotifyPropertyChanged
         _ => "\uE8A5"
     };
     public string CompactTitle => DisplayName;
-    public string CompactSubtitle => $"{AppliesTo}  |  {MiddleCategory}  |  {RegistryPath}";
+    public string CompactSubtitle => IsInRecycleBin && DeletedAt != null
+        ? $"{DeletedAt:yyyy-MM-dd HH:mm}  |  {AppliesTo}  |  {RegistryPath}"
+        : $"{AppliesTo}  |  {MiddleCategory}  |  {RegistryPath}";
     [JsonIgnore]
     public ImageSource? IconImageSource => _iconImageSource ??= LoadIconImageSource(_iconFilePath);
     [JsonIgnore]

@@ -20,6 +20,8 @@ public partial class MainWindow : Window
     private const int WmSettingChange = 0x001A;
     private const int WmThemeChanged = 0x031A;
     private const int DwmwaUseImmersiveDarkMode = 20;
+    private const string AllCategory = "全部";
+    private const string RecycleBinCategory = "回收站";
 
     private sealed record CategoryItem(string Name, int Count)
     {
@@ -280,12 +282,14 @@ public partial class MainWindow : Window
     private void LoadData()
     {
         _loading = true;
-        _items = ContextMenuRegistryScanner.ScanAll();
+        _items = ContextMenuRegistryScanner.ScanAll()
+            .Concat(RegistryRecycleBinService.LoadItems())
+            .ToList();
 
-        HeaderSummaryText.Text = LocalizationService.Format("status_scanned", _items.Count);
+        HeaderSummaryText.Text = LocalizationService.Format("status_scanned", _items.Count(x => !x.IsInRecycleBin));
         _loading = false;
 
-        RefreshCategories("全部");
+        RefreshCategories(AllCategory);
         ApplyFilters();
         SelectFirstItem();
         Dispatcher.BeginInvoke(ApplyTheme, System.Windows.Threading.DispatcherPriority.Loaded);
@@ -312,7 +316,11 @@ public partial class MainWindow : Window
 
         RefreshCategories(category);
 
-        if (category != "全部")
+        if (category == AllCategory)
+            items = items.Where(x => !x.IsInRecycleBin);
+        else if (category == RecycleBinCategory)
+            items = items.Where(x => x.IsInRecycleBin);
+        else
             items = items.Where(x => x.BigCategory.Equals(category, StringComparison.OrdinalIgnoreCase));
 
         var currentListQuery = CurrentListSearchBox.Text?.Trim() ?? "";
@@ -358,12 +366,15 @@ public partial class MainWindow : Window
         var includeEnabled = EnabledFilterBox.IsChecked == true;
         var includeDisabled = DisabledFilterBox.IsChecked == true;
         var countSource = ApplyTypeAndSearchFilters(_items, includeShellVerb, includeShellEx, includeEnabled, includeDisabled, query).ToList();
-        var categories = countSource
+        var activeItems = countSource.Where(x => !x.IsInRecycleBin).ToList();
+        var recycleItems = countSource.Where(x => x.IsInRecycleBin).ToList();
+        var categories = activeItems
             .GroupBy(x => x.BigCategory, StringComparer.OrdinalIgnoreCase)
             .Select(g => new CategoryItem(g.Key, g.Count()))
             .OrderBy(x => x.Name)
-            .Prepend(new CategoryItem("全部", countSource.Count))
+            .Prepend(new CategoryItem(AllCategory, activeItems.Count))
             .ToList();
+        categories.Add(new CategoryItem(RecycleBinCategory, recycleItems.Count));
 
         _refreshingCategories = true;
         CategoryList.ItemsSource = categories;
@@ -374,7 +385,7 @@ public partial class MainWindow : Window
 
     private string GetSelectedCategory()
     {
-        return CategoryList.SelectedItem is CategoryItem item ? item.Name : "全部";
+        return CategoryList.SelectedItem is CategoryItem item ? item.Name : AllCategory;
     }
 
     private bool Matches(ContextMenuItemInfo item, string query)
@@ -628,11 +639,14 @@ public partial class MainWindow : Window
         OpenClsidButton.Visibility = !string.IsNullOrWhiteSpace(item.Clsid) ? Visibility.Visible : Visibility.Collapsed;
         OpenDllPathButton.Visibility = !string.IsNullOrWhiteSpace(item.InProcServer32) ? Visibility.Visible : Visibility.Collapsed;
         OpenIconPathButton.Visibility = HasOpenableFilePath(item.IconResource) ? Visibility.Visible : Visibility.Collapsed;
-        EnableSwitch.IsEnabled = !item.IsReadOnly;
-        SaveButton.IsEnabled = !item.IsReadOnly;
+        EnableSwitch.IsEnabled = !item.IsReadOnly && !item.IsInRecycleBin;
+        SaveButton.IsEnabled = !item.IsReadOnly && !item.IsInRecycleBin;
         SaveButton.Content = LocalizationService.T("action_save");
-        DeleteButton.IsEnabled = !item.IsReadOnly;
-        DeleteButton.Content = item.IsPendingDelete ? LocalizationService.T("action_cancel_delete") : LocalizationService.T("action_delete");
+        DeleteButton.IsEnabled = !item.IsReadOnly || item.IsInRecycleBin;
+        DeleteButton.Style = (Style)Resources[item.IsInRecycleBin ? "PrimaryButton" : "DangerButton"];
+        DeleteButton.Content = item.IsInRecycleBin
+            ? LocalizationService.T("action_restore")
+            : item.IsPendingDelete ? LocalizationService.T("action_cancel_delete") : LocalizationService.T("action_delete");
 
         if (!string.IsNullOrWhiteSpace(item.IconFilePath) && File.Exists(item.IconFilePath))
         {
@@ -827,7 +841,7 @@ public partial class MainWindow : Window
             {
                 try
                 {
-                    ContextMenuRegistryEditor.Delete(_selected);
+                    RegistryRecycleBinService.BackupAndDelete(_selected);
                 }
                 catch (Exception ex) when (ElevatedDeleteService.IsPermissionFailure(ex))
                 {
@@ -835,10 +849,8 @@ public partial class MainWindow : Window
                     return;
                 }
 
-                _items.Remove(_selected);
-                ApplyFilters();
-                SelectFirstItem();
-                StatusText.Text = LocalizationService.T("status_deleted");
+                LoadData();
+                StatusText.Text = LocalizationService.T("status_moved_to_recycle_bin");
                 return;
             }
 
@@ -913,6 +925,12 @@ public partial class MainWindow : Window
         if (_selected == null)
             return;
 
+        if (_selected.IsInRecycleBin)
+        {
+            RestoreSelectedItem();
+            return;
+        }
+
         if (!_selected.IsPendingDelete && !ContextMenuRegistryEditor.CanDelete(_selected, out var deletePermissionError))
         {
             PromptRestartElevatedForDelete(_selected, deletePermissionError);
@@ -936,6 +954,31 @@ public partial class MainWindow : Window
         SaveButton.Content = LocalizationService.T("action_save");
         ItemsList.Items.Refresh();
         StatusText.Text = _selected.IsPendingDelete ? LocalizationService.T("status_pending_delete") : LocalizationService.T("status_cancel_delete");
+    }
+
+    private void RestoreSelectedItem()
+    {
+        if (_selected?.RecycleBinId == null)
+            return;
+
+        try
+        {
+            RegistryRecycleBinService.Restore(_selected.RecycleBinId);
+            LoadData();
+            StatusText.Text = LocalizationService.T("status_restored");
+        }
+        catch (Exception ex) when (ElevatedDeleteService.IsPermissionFailure(ex))
+        {
+            var message = LocalizationService.Format("dialog_restore_elevate_message", ex.Message);
+            if (MessageBox.Show(this, message, LocalizationService.T("dialog_notice"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                return;
+            ElevatedDeleteService.RestartElevatedForRestore(_selected.RecycleBinId);
+            Close();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, LocalizationService.T("dialog_notice"), MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void PromptRestartElevatedForDelete(ContextMenuItemInfo item, string? reason)
@@ -1066,7 +1109,7 @@ public partial class MainWindow : Window
     {
         var scopes = new List<ExportScope>
         {
-            new(LocalizationService.T("dialog_export_all"), _items),
+            new(LocalizationService.T("dialog_export_all"), _items.Where(x => !x.IsInRecycleBin).ToList()),
             new(LocalizationService.T("dialog_export_current"), _filtered)
         };
 

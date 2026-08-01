@@ -327,7 +327,7 @@ public static class ContextMenuRegistryScanner
         var defaultValue = sub.GetValue(null)?.ToString();
         var muiVerb = sub.GetValue("MUIVerb")?.ToString();
         var command = GetCommand(sub);
-        var rawName = FirstNonEmpty(muiVerb, defaultValue, subName) ?? subName;
+        var rawName = TextEncodingRepair.RepairMojibake(FirstNonEmpty(muiVerb, defaultValue, subName) ?? subName) ?? subName;
 
         var clsid = location.Kind == ContextMenuKind.ShellVerb ? null : ShellResourceResolver.ExtractClsid(defaultValue);
         var clsidName = clsid == null ? null : ShellResourceResolver.ResolveClsidName(clsid);
@@ -345,7 +345,8 @@ public static class ContextMenuRegistryScanner
             ShellResourceResolver.ResolveClsidDisplayName(defaultValue),
             ShellResourceResolver.ResolveClsidDisplayName(subName),
             HumanizeKeyName(subName));
-        var resolvedDisplayName = string.IsNullOrWhiteSpace(displayName) ? subName : displayName;
+        var resolvedDisplayName = TextEncodingRepair.RepairMojibake(
+            string.IsNullOrWhiteSpace(displayName) ? subName : displayName) ?? subName;
 
         var relativeItemPath = Combine(root.ClassesPrefix, location.Path, subName);
 
