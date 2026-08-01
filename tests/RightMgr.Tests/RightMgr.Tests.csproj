@@ -22,7 +22,9 @@
     <Compile Include="..\..\src\Services\ContextMenuRegistryEditor.cs" Link="Source\Services\ContextMenuRegistryEditor.cs" />
     <Compile Include="..\..\src\Services\ContextMenuRegistryScanner.cs" Link="Source\Services\ContextMenuRegistryScanner.cs" />
     <Compile Include="..\..\src\Services\ElevatedDeleteService.cs" Link="Source\Services\ElevatedDeleteService.cs" />
+    <Compile Include="..\..\src\Services\RegistryRecycleBinService.cs" Link="Source\Services\RegistryRecycleBinService.cs" />
     <Compile Include="..\..\src\Services\ShellIconService.cs" Link="Source\Services\ShellIconService.cs" />
     <Compile Include="..\..\src\Services\ShellResourceResolver.cs" Link="Source\Services\ShellResourceResolver.cs" />
+    <Compile Include="..\..\src\Services\TextEncodingRepair.cs" Link="Source\Services\TextEncodingRepair.cs" />
   </ItemGroup>
 </Project>
